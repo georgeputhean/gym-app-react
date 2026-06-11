@@ -591,6 +591,8 @@ function WorkoutApp() {
   const [timer, setTimer] = useState(null);
   const [nextTarget, setNextTarget] = useState(null);
   const [expandedSets, setExpandedSets] = useState({});
+  const [sectionsDone, setSectionsDone] = useState(() => loadLS("cz_sections", {}));
+  const [expandedSecs, setExpandedSecs] = useState({});
   const [daily, setDaily] = useState(() => loadLS("cz_daily", {}));
 
   const day = days.find((d) => d.id === activeDay);
@@ -601,6 +603,7 @@ function WorkoutApp() {
   useEffect(() => { saveLS("cz_log", log); }, [log]);
   useEffect(() => { saveLS("cz_exmode", exMode); }, [exMode]);
   useEffect(() => { saveLS("cz_daily", daily); }, [daily]);
+  useEffect(() => { saveLS("cz_sections", sectionsDone); }, [sectionsDone]);
 
   const dayLog = log[dk] || {};
   const today = daily[dk] || { bw: "", protein: "", water: "", sleep: "", steps: "", checks: {} };
@@ -649,6 +652,9 @@ function WorkoutApp() {
     if (idx >= 0 && idx + 1 < strengthOrder.length) return { exId: strengthOrder[idx + 1].exId, setIdx: 0 };
     return null;
   }
+
+  const secKey = (si) => activeDay + "-sec-" + si;
+  const firstIncompleteSec = day.sections.findIndex((_, si) => !sectionsDone[secKey(si)]);
 
   const firstIncompleteExId = strengthOrder.find(({ exId, nSets }) => {
     const e = (log[dk] || {})[exId];
@@ -725,14 +731,37 @@ function WorkoutApp() {
 
             {day.sections.map((sec, si) => {
               const isStrength = sec.name.includes("STRENGTH") || sec.name.includes("CIRCUIT");
+              const sk = secKey(si);
+              const secDone = !!sectionsDone[sk];
+              const isCurrentSec = si === firstIncompleteSec;
+              const secOpen = secDone ? !!expandedSecs[sk] : (isCurrentSec || !!expandedSecs[sk]);
+
               return (
-                <div key={si} className="sec-card" style={{ marginBottom: 12, background: "#111", borderRadius: 8, overflow: "hidden", border: "1px solid #1E1E1E" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "#161616", borderBottom: "1px solid #1E1E1E" }}>
-                    <div style={{ fontSize: 10, letterSpacing: 3, fontWeight: 500, color: "#CCC" }}>{sec.name}</div>
-                    {sec.badge && <div style={{ fontSize: 9, padding: "3px 8px", background: day.color + "22", color: day.color, borderRadius: 3, letterSpacing: 1 }}>{sec.badge}</div>}
+                <div key={si} className="sec-card" style={{ marginBottom: 12, background: "#111", borderRadius: 8, overflow: "hidden",
+                  border: secDone ? "1px solid #00E87A44" : isCurrentSec ? "1px solid " + day.color + "55" : "1px solid #1E1E1E" }}>
+                  <div className="ex-row" onClick={() => setExpandedSecs((p) => Object.assign({}, p, { [sk]: !p[sk] }))}
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px",
+                      background: secDone ? "#00E87A0D" : isCurrentSec ? day.color + "15" : "#161616",
+                      borderBottom: secOpen ? "1px solid #1E1E1E" : "none" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+                      <button onClick={(e) => { e.stopPropagation();
+                          setSectionsDone((p) => Object.assign({}, p, { [sk]: !p[sk] }));
+                          if (!secDone) setExpandedSecs((p) => Object.assign({}, p, { [sk]: false }));
+                        }}
+                        style={{ width: 26, height: 26, borderRadius: "50%", border: "2px solid " + (secDone ? "#00E87A" : isCurrentSec ? day.color : "#444"),
+                          background: secDone ? "#00E87A" : "transparent", color: secDone ? "#000" : (isCurrentSec ? day.color : "#555"),
+                          fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✓</button>
+                      <div style={{ fontSize: 10, letterSpacing: 3, fontWeight: 500, color: secDone ? "#00E87A" : isCurrentSec ? day.color : "#CCC",
+                        textDecoration: secDone ? "line-through" : "none", opacity: secDone ? 0.7 : 1 }}>{sec.name}</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      {sec.badge && !secDone && <div style={{ fontSize: 9, padding: "3px 8px", background: day.color + "22", color: day.color, borderRadius: 3, letterSpacing: 1 }}>{sec.badge}</div>}
+                      {secDone && <span style={{ fontSize: 9, letterSpacing: 1.5, background: "#00E87A", color: "#000", padding: "2px 7px", borderRadius: 10, fontWeight: 600 }}>✓ DONE</span>}
+                      <div style={{ fontSize: 11, color: "#555" }}>{secOpen ? "▲" : "▼"}</div>
+                    </div>
                   </div>
-                  {sec.note && <div style={{ padding: "8px 14px", background: "#0D0D0D", borderBottom: "1px solid #1A1A1A", fontSize: 10, color: "#777", lineHeight: 1.6 }}>{sec.note}</div>}
-                  <div>
+                  {secOpen && sec.note && <div style={{ padding: "8px 14px", background: "#0D0D0D", borderBottom: "1px solid #1A1A1A", fontSize: 10, color: "#777", lineHeight: 1.6 }}>{sec.note}</div>}
+                  {secOpen && <div>
                     {sec.items.map((item, ii) => {
                       const key = si + "-" + ii;
                       const exId = day.id + "-" + sec.name.slice(0,4) + "-" + ii;
@@ -855,7 +884,7 @@ function WorkoutApp() {
                         </div>
                       );
                     })}
-                  </div>
+                  </div>}
                 </div>
               );
             })}
