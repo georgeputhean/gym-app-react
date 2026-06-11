@@ -616,6 +616,14 @@ function WorkoutApp() {
   }
   function toggleMode(exId) { setExMode((p) => Object.assign({}, p, { [exId]: p[exId] === "check" ? "full" : "check" })); }
   function setDailyField(field, val) { setDaily((prev) => Object.assign({}, prev, { [dk]: Object.assign({ checks: {} }, prev[dk] || {}, { [field]: val }) })); }
+  function markAllDone(exId, nSets, isDone) {
+    setLog((prev) => {
+      const d = Object.assign({}, prev[dk] || {});
+      const sets = Array.from({ length: nSets }, (_, i) => Object.assign({}, (d[exId] && d[exId].sets[i]) || { w: "", r: "" }, { done: !isDone }));
+      d[exId] = { sets };
+      return Object.assign({}, prev, { [dk]: d });
+    });
+  }
   function toggleCheck(name) {
     setDaily((prev) => {
       const t = prev[dk] || { checks: {} };
@@ -641,6 +649,11 @@ function WorkoutApp() {
     if (idx >= 0 && idx + 1 < strengthOrder.length) return { exId: strengthOrder[idx + 1].exId, setIdx: 0 };
     return null;
   }
+
+  const firstIncompleteExId = strengthOrder.find(({ exId, nSets }) => {
+    const e = (log[dk] || {})[exId];
+    return !(e && e.sets.length === nSets && e.sets.every((s) => s.done));
+  })?.exId;
 
   const bwHistory = Object.keys(daily)
     .filter((k) => daily[k].bw && !isNaN(parseFloat(daily[k].bw)))
@@ -731,20 +744,21 @@ function WorkoutApp() {
                       const restMatch = item.detail && item.detail.match(/(\d+)s rest/);
                       const rest = restMatch ? parseInt(restMatch[1]) : 60;
                       const allDone = isStrength && exLog && exLog.sets.length === nSets && exLog.sets.every((s) => s.done);
-                      const setsOpen = !allDone || expandedSets[exId];
+                      const isCurrent = isStrength && !allDone && exId === firstIncompleteExId;
+                      const setsOpen = allDone ? !!expandedSets[exId] : (isCurrent || !!expandedSets[exId]);
 
                       return (
                         <div key={ii} style={{ borderBottom: ii < sec.items.length - 1 ? "1px solid #181818" : "none" }}>
                           <div className="ex-row" onClick={() => {
-                              if (isStrength && allDone) { setExpandedSets((p) => Object.assign({}, p, { [exId]: !p[exId] })); }
+                              if (isStrength) { setExpandedSets((p) => Object.assign({}, p, { [exId]: !p[exId] })); }
                               else if (hasTip) { setExpandedEx(isOpen ? null : key); }
                             }}
                             style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 14px", gap: 12,
-                              background: allDone ? "#00E87A08" : item.highlight && !isOpen ? day.color + "08" : isOpen ? day.color + "0D" : "transparent",
-                              borderLeft: allDone ? "3px solid #00E87A" : (isOpen || item.highlight) ? "3px solid " + day.color : "3px solid transparent" }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <span style={{ fontSize: 12, color: allDone ? "#00E87A" : isOpen || item.highlight ? day.color : "#DDD", fontWeight: allDone || isOpen || item.highlight ? 500 : 400,
+                              background: allDone ? "#00E87A08" : isCurrent ? day.color + "0D" : "transparent",
+                              borderLeft: allDone ? "3px solid #00E87A" : isCurrent ? "3px solid " + day.color : "3px solid transparent" }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                <span style={{ fontSize: 12, color: allDone ? "#00E87A" : isCurrent ? day.color : "#DDD", fontWeight: allDone || isCurrent ? 500 : 400,
                                   textDecoration: allDone ? "line-through" : "none", opacity: allDone ? 0.7 : 1 }}>
                                   {item.label}
                                 </span>
@@ -753,9 +767,17 @@ function WorkoutApp() {
                               </div>
                               {item.detail && !allDone && <div style={{ fontSize: 10, color: "#555", marginTop: 3, lineHeight: 1.5 }}>{item.detail}</div>}
                             </div>
-                            {allDone
-                              ? <div style={{ fontSize: 11, color: "#555", flexShrink: 0 }}>{expandedSets[exId] ? "▲" : "▼"}</div>
-                              : hasTip && <div style={{ fontSize: 13, color: isOpen ? day.color : "#444", flexShrink: 0, marginTop: 1 }}>{isOpen ? "▲" : "▼"}</div>}
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                              {isStrength && (
+                                <button onClick={(e) => { e.stopPropagation(); markAllDone(exId, nSets, allDone); if (allDone) { setExpandedSets((p) => Object.assign({}, p, { [exId]: false })); } }}
+                                  style={{ width: 28, height: 28, borderRadius: "50%", border: "2px solid " + (allDone ? "#00E87A" : "#333"), background: allDone ? "#00E87A" : "transparent",
+                                    color: allDone ? "#000" : "#555", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                  ✓
+                                </button>
+                              )}
+                              {!isStrength && hasTip && <div style={{ fontSize: 13, color: isOpen ? day.color : "#444" }}>{isOpen ? "▲" : "▼"}</div>}
+                              {isStrength && <div style={{ fontSize: 11, color: "#555" }}>{setsOpen ? "▲" : "▼"}</div>}
+                            </div>
                           </div>
 
                           {isStrength && setsOpen && (
