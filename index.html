@@ -778,16 +778,13 @@ function WorkoutApp() {
 
                       return (
                         <div key={ii} style={{ borderBottom: ii < sec.items.length - 1 ? "1px solid #181818" : "none" }}>
-                          <div className="ex-row" onClick={() => {
-                              if (isStrength) { setExpandedSets((p) => Object.assign({}, p, { [exId]: !p[exId] })); }
-                              else if (hasTip) { setExpandedEx(isOpen ? null : key); }
-                            }}
+                          <div className={hasTip ? "ex-row" : ""} onClick={hasTip && !allDone ? () => setExpandedEx(isOpen ? null : key) : undefined}
                             style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 14px", gap: 12,
                               background: allDone ? "#00E87A08" : isCurrent ? day.color + "0D" : "transparent",
                               borderLeft: allDone ? "3px solid #00E87A" : isCurrent ? "3px solid " + day.color : "3px solid transparent" }}>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                                <span style={{ fontSize: 12, color: allDone ? "#00E87A" : isCurrent ? day.color : "#DDD", fontWeight: allDone || isCurrent ? 500 : 400,
+                                <span style={{ fontSize: 12, color: allDone ? "#00E87A" : isOpen || isCurrent ? day.color : "#DDD", fontWeight: allDone || isOpen || isCurrent ? 500 : 400,
                                   textDecoration: allDone ? "line-through" : "none", opacity: allDone ? 0.7 : 1 }}>
                                   {item.label}
                                 </span>
@@ -798,14 +795,26 @@ function WorkoutApp() {
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                               {isStrength && (
-                                <button onClick={(e) => { e.stopPropagation(); markAllDone(exId, nSets, allDone); if (allDone) { setExpandedSets((p) => Object.assign({}, p, { [exId]: false })); } }}
+                                <button onClick={(e) => { e.stopPropagation(); markAllDone(exId, nSets, allDone); }}
                                   style={{ width: 28, height: 28, borderRadius: "50%", border: "2px solid " + (allDone ? "#00E87A" : "#333"), background: allDone ? "#00E87A" : "transparent",
                                     color: allDone ? "#000" : "#555", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                                   ✓
                                 </button>
                               )}
+                              {isStrength && !allDone && hasTip && (
+                                <div onClick={(e) => { e.stopPropagation(); setExpandedEx(isOpen ? null : key); }}
+                                  style={{ fontSize: 9, letterSpacing: 1, color: isOpen ? day.color : "#555", cursor: "pointer", padding: "4px 6px",
+                                    border: "1px solid " + (isOpen ? day.color + "88" : "#2A2A2A"), borderRadius: 4 }}>
+                                  {isOpen ? "CUE ▲" : "CUE ▼"}
+                                </div>
+                              )}
+                              {isStrength && !allDone && (
+                                <div onClick={(e) => { e.stopPropagation(); setExpandedSets((p) => Object.assign({}, p, { [exId]: !p[exId] })); }}
+                                  style={{ fontSize: 11, color: setsOpen ? day.color : "#555", cursor: "pointer", padding: "4px" }}>
+                                  {setsOpen ? "▲" : "▼"}
+                                </div>
+                              )}
                               {!isStrength && hasTip && <div style={{ fontSize: 13, color: isOpen ? day.color : "#444" }}>{isOpen ? "▲" : "▼"}</div>}
-                              {isStrength && <div style={{ fontSize: 11, color: "#555" }}>{setsOpen ? "▲" : "▼"}</div>}
                             </div>
                           </div>
 
