@@ -774,7 +774,7 @@ function WorkoutApp() {
                       const rest = restMatch ? parseInt(restMatch[1]) : 60;
                       const allDone = isStrength && exLog && exLog.sets.length === nSets && exLog.sets.every((s) => s.done);
                       const isCurrent = isStrength && !allDone && exId === firstIncompleteExId;
-                      const setsOpen = allDone ? !!expandedSets[exId] : (isCurrent || !!expandedSets[exId]);
+                      const setsOpen = !allDone && isCurrent;
 
                       return (
                         <div key={ii} style={{ borderBottom: ii < sec.items.length - 1 ? "1px solid #181818" : "none" }}>
@@ -801,20 +801,7 @@ function WorkoutApp() {
                                   ✓
                                 </button>
                               )}
-                              {isStrength && !allDone && hasTip && (
-                                <div onClick={(e) => { e.stopPropagation(); setExpandedEx(isOpen ? null : key); }}
-                                  style={{ fontSize: 9, letterSpacing: 1, color: isOpen ? day.color : "#555", cursor: "pointer", padding: "4px 6px",
-                                    border: "1px solid " + (isOpen ? day.color + "88" : "#2A2A2A"), borderRadius: 4 }}>
-                                  {isOpen ? "CUE ▲" : "CUE ▼"}
-                                </div>
-                              )}
-                              {isStrength && !allDone && (
-                                <div onClick={(e) => { e.stopPropagation(); setExpandedSets((p) => Object.assign({}, p, { [exId]: !p[exId] })); }}
-                                  style={{ fontSize: 11, color: setsOpen ? day.color : "#555", cursor: "pointer", padding: "4px" }}>
-                                  {setsOpen ? "▲" : "▼"}
-                                </div>
-                              )}
-                              {!isStrength && hasTip && <div style={{ fontSize: 13, color: isOpen ? day.color : "#444" }}>{isOpen ? "▲" : "▼"}</div>}
+                              {hasTip && !allDone && <div style={{ fontSize: 13, color: isOpen ? day.color : "#444", flexShrink: 0, marginTop: 1 }}>{isOpen ? "▲" : "▼"}</div>}
                             </div>
                           </div>
 
