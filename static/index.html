@@ -590,6 +590,7 @@ function WorkoutApp() {
   const [exMode, setExMode] = useState(() => loadLS("cz_exmode", {}));
   const [timer, setTimer] = useState(null);
   const [nextTarget, setNextTarget] = useState(null);
+  const [expandedSets, setExpandedSets] = useState({});
   const [daily, setDaily] = useState(() => loadLS("cz_daily", {}));
 
   const day = days.find((d) => d.id === activeDay);
@@ -729,23 +730,35 @@ function WorkoutApp() {
                       const exLog = dayLog[exId];
                       const restMatch = item.detail && item.detail.match(/(\d+)s rest/);
                       const rest = restMatch ? parseInt(restMatch[1]) : 60;
+                      const allDone = isStrength && exLog && exLog.sets.length === nSets && exLog.sets.every((s) => s.done);
+                      const setsOpen = !allDone || expandedSets[exId];
 
                       return (
                         <div key={ii} style={{ borderBottom: ii < sec.items.length - 1 ? "1px solid #181818" : "none" }}>
-                          <div className={hasTip ? "ex-row" : ""} onClick={hasTip ? () => setExpandedEx(isOpen ? null : key) : undefined}
+                          <div className="ex-row" onClick={() => {
+                              if (isStrength && allDone) { setExpandedSets((p) => Object.assign({}, p, { [exId]: !p[exId] })); }
+                              else if (hasTip) { setExpandedEx(isOpen ? null : key); }
+                            }}
                             style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 14px", gap: 12,
-                              background: item.highlight && !isOpen ? day.color + "08" : isOpen ? day.color + "0D" : "transparent",
-                              borderLeft: (isOpen || item.highlight) ? "3px solid " + day.color : "3px solid transparent" }}>
+                              background: allDone ? "#00E87A08" : item.highlight && !isOpen ? day.color + "08" : isOpen ? day.color + "0D" : "transparent",
+                              borderLeft: allDone ? "3px solid #00E87A" : (isOpen || item.highlight) ? "3px solid " + day.color : "3px solid transparent" }}>
                             <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: 12, color: isOpen || item.highlight ? day.color : "#DDD", fontWeight: isOpen || item.highlight ? 500 : 400 }}>
-                                {item.label}{item.coachZ && <span style={{ color: CZ, marginLeft: 6, fontSize: 11 }}>🅩</span>}
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ fontSize: 12, color: allDone ? "#00E87A" : isOpen || item.highlight ? day.color : "#DDD", fontWeight: allDone || isOpen || item.highlight ? 500 : 400,
+                                  textDecoration: allDone ? "line-through" : "none", opacity: allDone ? 0.7 : 1 }}>
+                                  {item.label}
+                                </span>
+                                {item.coachZ && !allDone && <span style={{ color: CZ, fontSize: 11 }}>🅩</span>}
+                                {allDone && <span style={{ fontSize: 9, letterSpacing: 1.5, background: "#00E87A", color: "#000", padding: "2px 7px", borderRadius: 10, fontWeight: 600 }}>✓ DONE</span>}
                               </div>
-                              {item.detail && <div style={{ fontSize: 10, color: "#555", marginTop: 3, lineHeight: 1.5 }}>{item.detail}</div>}
+                              {item.detail && !allDone && <div style={{ fontSize: 10, color: "#555", marginTop: 3, lineHeight: 1.5 }}>{item.detail}</div>}
                             </div>
-                            {hasTip && <div style={{ fontSize: 13, color: isOpen ? day.color : "#444", flexShrink: 0, marginTop: 1 }}>{isOpen ? "▲" : "▼"}</div>}
+                            {allDone
+                              ? <div style={{ fontSize: 11, color: "#555", flexShrink: 0 }}>{expandedSets[exId] ? "▲" : "▼"}</div>
+                              : hasTip && <div style={{ fontSize: 13, color: isOpen ? day.color : "#444", flexShrink: 0, marginTop: 1 }}>{isOpen ? "▲" : "▼"}</div>}
                           </div>
 
-                          {isStrength && (
+                          {isStrength && setsOpen && (
                             <div style={{ padding: "0 14px 12px" }}>
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                                 <button onClick={() => toggleMode(exId)}
@@ -804,7 +817,7 @@ function WorkoutApp() {
                             </div>
                           )}
 
-                          {isOpen && hasTip && (
+                          {isOpen && hasTip && !allDone && (
                             <div className="tip-box" style={{ padding: "0 14px 12px", background: day.color + "08" }}>
                               {item.tip && (<div style={{ marginBottom: (item.coachZ || item.avoid) ? 8 : 0 }}>
                                 <div style={{ fontSize: 9, letterSpacing: 2, color: day.color, marginBottom: 4 }}>✓ TECHNIQUE</div>
