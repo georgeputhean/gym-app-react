@@ -1,14 +1,935 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/gym-app-react/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>IRONFORGE — Gym Tracker</title>
-    <script type="module" crossorigin src="/gym-app-react/assets/index-BuOAv7PT.js"></script>
-    <link rel="stylesheet" crossorigin href="/gym-app-react/assets/index-BsxvxKb3.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="theme-color" content="#0A0A0A" />
+<title>Coach Z Training App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet" />
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background:#0A0A0A; }
+  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: #111; } ::-webkit-scrollbar-thumb { background: #333; }
+  .day-btn, .view-btn { transition: all 0.15s ease; cursor: pointer; border: none; font-family: 'DM Mono', monospace; }
+  .ex-row { cursor: pointer; transition: background 0.1s; }
+  .tip-box { animation: slideDown 0.2s ease forwards; }
+  .sec-card { animation: slideUp 0.25s ease forwards; }
+  .burn-bar { animation: growBar 0.5s ease forwards; transform-origin: left; }
+  input.gym { background:#0D0D0D; border:1px solid #2A2A2A; color:#EEE; border-radius:5px; padding:7px 8px; font-family:'DM Mono',monospace; font-size:13px; width:100%; }
+  input.gym:focus { outline:none; border-color:#555; }
+  @keyframes slideDown { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes growBar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+// ─── MAX WEIGHT LOSS × COACH Z EDITION ───
+// Fat loss structure + Coach Z (Ziad Mansour) aesthetic methodology
+// No supersets · 6 strength exercises/day · tips + Coach Z cue on every lift
+
+const CZ = "#B388FF"; // Coach Z accent
+
+const days = [
+  {
+    id: "mon",
+    label: "MON",
+    title: "Push",
+    subtitle: "Chest · Triceps · Delts",
+    color: "#FF4D1C",
+    icon: "🔥",
+    burn: "~520 kcal",
+    cardioType: "Zone 2 ×2 (split dose)",
+    sections: [
+      {
+        name: "CARDIO DOSE 1 — PRE-LIFT",
+        badge: "12 min · Zone 2",
+        note: "Split-dose cardio: two shorter bouts stack EPOC twice and keep lifting quality high.",
+        items: [
+          { label: "Incline Treadmill Walk", detail: "12 min · RPE 5–6 · 3.0–3.5mph / 8–10%", tip: "Upright posture, no rails — holding rails cuts the burn by up to 30%. This dose primes adrenaline so fat mobilizes during the lifting that follows." },
+        ],
+      },
+      {
+        name: "WARM-UP",
+        badge: "8 min",
+        items: [
+          { label: "Light Barbell Bench Press", detail: "2 warm-up sets · 40–50% working weight", tip: "Groove the bar path, set scapular retraction. Rehearsal, not work." },
+          { label: "Band Pull-Aparts", detail: "2×15", tip: "Arms straight, pull to chest level. Primes rear delts before pressing." },
+          { label: "Stomach Vacuum (ADIM)", detail: "2×15s holds", tip: "Full exhale, navel to spine, hold 15s. Activates the transverse abdominis before loading." },
+        ],
+      },
+      {
+        name: "STRENGTH — MUSCLE PRESERVATION",
+        badge: "6 exercises · 32 min",
+        note: "Rest: 75s compounds (1–2) · 60s isolation (3–6). LOADS ARE SET FROM YOUR ACTUAL NUMBERS (bench 80×4 ≈ 90lb max). Progression: when all 3 sets hit the top of the rep range, add 5lbs next session. Coach Z: visualize before every set, 3s eccentrics, flex during rest.",
+        items: [
+          {
+            label: "1. Barbell Bench Press",
+            detail: "3×10–12 · 75s rest · START: 55–60lbs (≈65% of your ~90lb max)",
+            tip: "Elbows 45°, drive feet into floor, push the bar away from you. Stop 2 reps shy of failure — failure training in a deficit eats recovery you don't have.",
+            coachZ: "Before unracking, visualize your pecs doing the work — not your arms. 3-second lowering on every rep. Between sets, do a hard 10s pec flex (hands pressed together) to keep the mind-muscle connection lit.",
+            avoid: "Don't bounce the bar or chase failure.",
+          },
+          {
+            label: "2. Incline DB Press",
+            detail: "3×10–12 · 75s rest · START: 17.5–20lb DBs",
+            tip: "3-second lowering phase. DBs in line with lower chest at the bottom, press up and slightly inward.",
+            coachZ: "Squeeze the pecs HARD at the top before lowering — own that contraction. The upper-chest line is what shows first when you lean out; treat every top-position squeeze as posing practice.",
+            avoid: "Don't let the lower back arch off the bench.",
+          },
+          {
+            label: "3. Pec Deck / Cable Flys",
+            detail: "3×12–15 · 60s rest",
+            tip: "Slight elbow bend locked in, 1s hard squeeze at peak. Think 'hugging a barrel.'",
+            coachZ: "On cables, arc low-to-high — start low outside, finish high inside at eye level. This carves the upper-chest line. Hold the peak squeeze 2 full seconds on your last 3 reps of each set.",
+            avoid: "Don't swing or let the stack crash between reps.",
+          },
+          {
+            label: "4. Dips (Bench or Bars)",
+            detail: "3×8–10 · 60s rest · BW Week 1",
+            tip: "Torso upright to isolate triceps. Descend to 90° elbow bend only.",
+            coachZ: "This is the move that builds the horseshoe — own every inch of every rep. Slow 3s descent, no drop-and-pop. Flex the triceps hard between sets with an arm-extended pose.",
+            avoid: "Don't dip past 90° during comeback weeks.",
+          },
+          {
+            label: "5. Cable Tricep Pushdowns",
+            detail: "3×12–15 · 60s rest · START: 20–25lbs stack",
+            tip: "Elbows pinned to ribs the entire set. Full 1s lockout at the bottom, controlled return.",
+            coachZ: "At lockout, squeeze the triceps like you're hitting a side-triceps pose — 1 full second every rep. The lockout squeeze IS the rep; everything else is travel.",
+            avoid: "Don't let elbows flare or drift forward.",
+          },
+          {
+            label: "6. DB Lateral Raises",
+            detail: "3×12–15 · 60s rest · START: 10–12.5lb DBs",
+            tip: "Lean 5° forward, lead with elbows, lift to shoulder height only.",
+            coachZ: "After your final full set, immediately do 15 top-half partials — the lateral-head burnout. Wide delts are the #1 visual fat-loss multiplier: the wider the shoulders, the smaller the waist looks.",
+            avoid: "Don't shrug at the top — traps stealing the work.",
+          },
+        ],
+      },
+      {
+        name: "CARDIO DOSE 2 — POST-LIFT",
+        badge: "15 min · Zone 2",
+        note: "Glycogen partially depleted from lifting — body shifts to fat oxidation faster.",
+        items: [
+          { label: "Incline Treadmill Walk", detail: "15 min · RPE 5–6", tip: "Same settings as Dose 1. Bump incline 1–2% in the final 5 minutes if you have gas left." },
+        ],
+      },
+      {
+        name: "CORE & COOLDOWN",
+        badge: "5 min",
+        items: [
+          { label: "Stomach Vacuum (ADIM)", detail: "3×15s", tip: "The vacuum tightens the waist from the inside — the only 'spot' work that actually changes waistline appearance." },
+          { label: "Plank", detail: "2×45s", tip: "Glutes squeezed, neutral pelvis, push the floor away with your forearms." },
+          { label: "Chest + Triceps Stretch", detail: "60s", tip: "Doorway stretch for chest, overhead reach for triceps. 20–30s holds." },
+        ],
+      },
+    ],
+  },
+  {
+    id: "tue",
+    label: "TUE",
+    title: "Pull + HIIT",
+    subtitle: "Back · Biceps · Sprint Finisher",
+    color: "#00C2FF",
+    icon: "🧲",
+    burn: "~560 kcal",
+    cardioType: "Zone 2 + HIIT finisher",
+    sections: [
+      {
+        name: "CARDIO DOSE 1 — PRE-LIFT",
+        badge: "10 min · Zone 2",
+        note: "Row machine preferred — warms the back musculature while burning.",
+        items: [
+          { label: "Row Machine", detail: "10 min · conversational pace · damper 4–5", tip: "Full leg drive, controlled arm pull. Legs do 60% of the work — don't yank with your arms." },
+        ],
+      },
+      {
+        name: "WARM-UP",
+        badge: "5 min",
+        items: [
+          { label: "Band Rows + Shoulder Circles", detail: "2 rounds", tip: "Drive elbows behind you, squeeze shoulder blades. Circles mobilize the joint before heavy pulling." },
+          { label: "Stomach Vacuum (ADIM)", detail: "2×15s", tip: "Daily vacuum frequency is what builds the waist-tightening adaptation." },
+        ],
+      },
+      {
+        name: "STRENGTH — MUSCLE PRESERVATION",
+        badge: "6 exercises · 32 min",
+        note: "Rest: 75s compounds (1–3) · 60s isolation (4–6). Coach Z: use straps on heavy pulling so grip never limits back stimulus.",
+        items: [
+          {
+            label: "1. Lat Pulldown / Pull-Ups",
+            detail: "3×8–10 · 75s rest · START: 70–80lbs stack",
+            tip: "Full 3s stretch at the top of every rep. Lat width is the top half of the V-taper.",
+            coachZ: "Pull your shoulders DOWN first, then drive elbows toward your back pockets — that sequence is what isolates the lats. Between sets, hit a lat-spread pose for 10s; if you can't flex it, you're not building it.",
+            avoid: "Don't pull with biceps or rock the torso backward.",
+          },
+          {
+            label: "2. Seated Cable Row / Bent-Over Row",
+            detail: "3×10–12 · 75s rest · START: 70–80lbs cable / 65lb barbell",
+            tip: "Back flat, hinge at hips, drive the handle to your lower stomach.",
+            coachZ: "Squeeze the shoulder blades together and HOLD 1s at full contraction every rep — feel the mid-back fold. 3s on the return stretch. Back thickness comes from the squeeze, not the weight.",
+            avoid: "Don't round the lower back or jerk with momentum.",
+          },
+          {
+            label: "3. 1-Arm Dumbbell Row",
+            detail: "3×10–12 · 75s rest · RPE 7",
+            tip: "Brace the free arm on the bench, spine neutral.",
+            coachZ: "Drive the elbow low toward your hip pocket and pause at the top — this path builds the lower-lat 'meat' that makes the waist look tighter from behind. Visualize the lat shortening before each set.",
+            avoid: "Don't rotate the torso excessively to finish reps.",
+          },
+          {
+            label: "4. Cable Face Pulls",
+            detail: "3×15–20 · 60s rest · light",
+            tip: "Cable at face height, elbows high, pull to nose with thumbs rotating back. Posture insurance.",
+            coachZ: "Hold the end position 1s with thumbs pointing behind you — feel the rear delts and rotators light up. Good posture alone makes you look 5lbs leaner: shoulders back, chest up, all day.",
+            avoid: "Don't load this heavy. Corrective, not a strength lift.",
+          },
+          {
+            label: "5. Barbell / DB Curls",
+            detail: "3×10–12 · 60s rest",
+            tip: "Elbows pinned at sides, 2s up, 3s down.",
+            coachZ: "Visualize the bicep peak before each set. Squeeze at the top like you're hitting a front double-bicep — every rep is a rehearsal. The 3s negative is where the arm is built.",
+            avoid: "Don't swing the torso to start the rep.",
+          },
+          {
+            label: "6. Hammer Curls",
+            detail: "3×10–12 · 60s rest",
+            tip: "Neutral thumb-up grip, 1s squeeze at the top.",
+            coachZ: "Brachialis growth pushes the bicep UP from underneath — this is the thickness move. Flex both arms in a hammer-style pose between sets to keep blood in the muscle.",
+            avoid: "Don't let the wrist roll. Locked neutral.",
+          },
+        ],
+      },
+      {
+        name: "HIIT FINISHER",
+        badge: "🔑 10 min · Max Burn",
+        note: "Second weekly HIIT dose — roughly doubles total EPOC vs one session.",
+        items: [
+          { label: "Bike Sprints", detail: "8 rounds · 20s sprint / 55s easy spin", tip: "Bike on pull day — legs fresh, zero impact before Thursday. Sprints at RPE 8–9. If round 8 feels like round 1, you went too easy.", highlight: true },
+        ],
+      },
+      {
+        name: "CORE & COOLDOWN",
+        badge: "7 min",
+        items: [
+          { label: "Hanging Leg Raises", detail: "3×10", tip: "Curl the pelvis upward at the top — that's what activates lower abs. No swinging." },
+          { label: "Dead Bugs", detail: "2×12 per side", tip: "Lower back pressed flat for every rep. Exhale on exertion." },
+          { label: "Lats / Biceps / Shoulder Stretch", detail: "60s", tip: "Overhead doorframe lean for lats, cross-arm for rear delt, palm-press for biceps." },
+        ],
+      },
+    ],
+  },
+  {
+    id: "thu",
+    label: "THU",
+    title: "Legs",
+    subtitle: "Highest Calorie Day",
+    color: "#00E87A",
+    icon: "🦵",
+    burn: "~600 kcal",
+    cardioType: "Post-lift Zone 2",
+    sections: [
+      {
+        name: "WARM-UP",
+        badge: "10 min",
+        note: "No pre-lift cardio today — squat and hinge patterns need fresh legs. The lifts ARE the calorie burners.",
+        items: [
+          { label: "Stationary Bike", detail: "5 min · easy spin · 80–90 RPM", tip: "Low resistance, pure joint lubrication for knees, hips, ankles." },
+          { label: "BW Squats + Leg Swings + Glute Bridges", detail: "2 rounds", tip: "Full-depth squats, front and lateral swings, 2s holds on bridges. Don't skip — cold leg compounds are the fastest route to injury." },
+        ],
+      },
+      {
+        name: "STRENGTH — BIGGEST BURN OF THE WEEK",
+        badge: "6 exercises · 35 min",
+        note: "Rest: 90s compounds (1–3) · 75s machines (4–5) · 60s calves. Loads anchored to your squat (90×8 ≈ 114lb max). Progression: all sets hit top of range → add 10lbs next session. Legs are ~60% of your muscle mass — this day raises resting metabolism most.",
+        items: [
+          {
+            label: "1. Barbell Back Squat",
+            detail: "3×10–12 · 90s rest · START: 65–75lbs (≈65% of your ~114lb max)",
+            tip: "Brace hard before descending. Hit full depth (hip crease below knee). Highest calorie-per-rep exercise in the program.",
+            coachZ: "3-second descent, visualize the quads loading like springs. Drive up through the whole foot and squeeze the glutes at lockout. Control builds legs; speed just moves weight.",
+            avoid: "Don't let knees cave or heels lift. Lighter weight, full depth — always.",
+          },
+          {
+            label: "2. Romanian Deadlift (RDL)",
+            detail: "3×10–12 · 90s rest · START: 65–75lbs",
+            tip: "Slight knee bend, push hips back, bar close to shins. Feel the hamstring stretch before driving hips forward.",
+            coachZ: "Visualize the hamstrings lengthening like cables on the way down — 3 full seconds. The stretch position under load is the single biggest hamstring growth trigger. Squeeze glutes hard at the top.",
+            avoid: "Don't round the lower back. No hamstring stretch = too heavy.",
+          },
+          {
+            label: "3. Walking Lunges",
+            detail: "3×10/leg · 90s rest · BW or light DBs",
+            tip: "Long step, front shin near vertical, back knee taps the floor.",
+            coachZ: "Stay tall like you're walking a stage — chest proud, eyes forward. Push through the front heel and feel the glute fire on every step. Highest heart-rate strength move in the plan; embrace the burn.",
+            avoid: "Don't push off the back foot to cheat. Front leg does the work.",
+          },
+          {
+            label: "4. Leg Press",
+            detail: "3×15 · 75s rest · full ROM",
+            tip: "Feet mid-platform, push through the whole foot, stop short of lockout.",
+            coachZ: "Slow 3s descent into a deep stretch, then drive. On the last 5 reps of the final set, add a 1s pause at the bottom — the pause strips momentum and forces pure quad.",
+            avoid: "Don't let your lower back round off the pad at the bottom.",
+          },
+          {
+            label: "5. Leg Curl (Seated or Lying)",
+            detail: "3×12–15 · 75s rest",
+            tip: "Start near-straight, curl to full contraction, 1s peak hold.",
+            coachZ: "Point your toes during the curl to take the calves out and isolate the hamstrings fully. Flex the hamstring during rest — if you can't feel it contract, slow the reps down.",
+            avoid: "Don't let hips rise (seated) or glutes lift (lying).",
+          },
+          {
+            label: "6. Standing Calf Raises",
+            detail: "3×20 · 60s rest",
+            tip: "2s pause at the deep bottom stretch, full lockout squeeze at top.",
+            coachZ: "Rise onto the big toe — not the outside of the foot — and squeeze at the top like you're trying to see the calf split. Calves are a posing muscle: contraction quality is everything.",
+            avoid: "Don't bounce. The stretch pause IS the stimulus.",
+          },
+        ],
+      },
+      {
+        name: "CARDIO — POST-LIFT",
+        badge: "20 min · Zone 2",
+        note: "Glycogen is maximally depleted after leg compounds — highest fat-oxidation window of your entire week.",
+        items: [
+          { label: "Incline Treadmill Walk", detail: "20 min · RPE 5–6 · 3.0mph / 8%", tip: "Legs will be heavy — expected. Slightly slower speed is fine; keep the incline. No rails.", highlight: true },
+        ],
+      },
+      {
+        name: "CORE FINISHER",
+        badge: "8 min",
+        items: [
+          { label: "Suitcase Carry", detail: "3×40m per side · moderate DB", tip: "Walk a perfectly straight line without leaning. Trims the flank without thickening it like loaded twists would." },
+          { label: "Side Plank", detail: "2×30s per side", tip: "Drive the hip up, don't sag. Anti-lateral-flexion tightens the waist without oblique bulk." },
+          { label: "Quads / Hams / Hip Stretch", detail: "90s", tip: "Standing quad pull, seated toe-touch, figure-4. 30s holds — legs need longer." },
+        ],
+      },
+    ],
+  },
+  {
+    id: "fri",
+    label: "FRI",
+    title: "Shoulders + HIIT",
+    subtitle: "Delts · Arms · Peak EPOC",
+    color: "#FFB800",
+    icon: "💥",
+    burn: "~540 kcal",
+    cardioType: "Primary HIIT session",
+    sections: [
+      {
+        name: "WARM-UP",
+        badge: "8 min",
+        items: [
+          { label: "Arm Swings + Light DB Press + Band Pull-Aparts", detail: "2 rounds", tip: "Big circles both directions, near-empty DB presses to groove the overhead pattern." },
+          { label: "Stomach Vacuum (ADIM)", detail: "2×15s", tip: "The vacuum-braced core protects the lower back under overhead load." },
+        ],
+      },
+      {
+        name: "STRENGTH — MUSCLE PRESERVATION",
+        badge: "6 exercises · 30 min",
+        note: "Rest: 60s ALL sets — tightest of the week. Coach Z: this is the aesthetics day — every set ends with a squeeze, every rest includes a flex.",
+        items: [
+          {
+            label: "1. Overhead Press (BB or DB)",
+            detail: "3×10–12 · 60s rest · START: 17.5–20lb DBs or 45lb empty bar",
+            tip: "Press to full lockout directly over mid-foot. Brace the core like you're about to be punched.",
+            coachZ: "Visualize the delts capping as you press. At lockout, push your head slightly through the window and squeeze for 1s. 3-second lowering — the eccentric is where caps are carved.",
+            avoid: "Don't arch the lower back to press forward.",
+          },
+          {
+            label: "2. DB Lateral Raises",
+            detail: "3×12–15 · 60s rest",
+            tip: "5° forward lean, lead with elbows, shoulder height only, slight pinky-up at top.",
+            coachZ: "Raise OUT, not up — imagine pushing the walls apart. Final set: 15 top-half partials to failure. Then hit a 10s lat-spread + delts flex between sets. Width is the whole game.",
+            avoid: "Don't swing or shrug. Lighter and stricter wins.",
+          },
+          {
+            label: "3. Rear Delt Fly Machine",
+            detail: "3×15 · 60s rest · START: 30–40lbs stack",
+            tip: "Lead with pinkies flared out. Do NOT pinch shoulder blades together.",
+            coachZ: "Pause 1s at the rear position and feel the rear delt — not the mid-back — do the holding. Rear delts are what make shoulders look 3D from the side. Most lifters skip them; that's your edge.",
+            avoid: "Don't rock the torso or use momentum.",
+          },
+          {
+            label: "4. Barbell Shrugs",
+            detail: "3×15 · 60s rest",
+            tip: "Straight up and slightly back, 1s hold at peak, 2s lower.",
+            coachZ: "At the top, hold and visualize the traps touching your ears. Controlled 3s lowering on the final 5 reps of each set — stretch-under-load grows traps faster than heavier shrugging.",
+            avoid: "Don't roll shoulders forward — AC joint stress for zero benefit.",
+          },
+          {
+            label: "5. Skullcrushers (EZ Bar)",
+            detail: "3×10–12 · 60s rest",
+            tip: "Elbows fixed pointing at the ceiling. Lower to forehead over 3s, press to lockout.",
+            coachZ: "The 3s lower IS the exercise — the long head grows from the deep stretch behind your head. Squeeze the lockout, then flex a side-triceps pose during rest.",
+            avoid: "Don't flare the elbows — it unloads the long head.",
+          },
+          {
+            label: "6. DB / EZ Bar Curls",
+            detail: "3×10–12 · 60s rest",
+            tip: "Full extension at the bottom, hard peak squeeze, 3s negative.",
+            coachZ: "Last arm work of the week — finish with a front double-bicep hold for 15s after the final set. Posing under fatigue hardens the muscle and trains you to actually display what you're building.",
+            avoid: "Don't drift elbows forward or swing the torso.",
+          },
+        ],
+      },
+      {
+        name: "AB PRIME",
+        badge: "6 min",
+        note: "Light load — primes blood flow to abdominal tissue ahead of HIIT.",
+        items: [
+          { label: "Ab Crunch Machine", detail: "3 sets · ~40 reps/min · 30–40% 1RM", tip: "Initiate from the abs, round the spine forward. Brief pause at full contraction." },
+        ],
+      },
+      {
+        name: "PRIMARY HIIT SESSION",
+        badge: "🔑 16 min · Peak EPOC",
+        note: "Biggest afterburn of the week — elevates calorie burn 12–24 hours after.",
+        items: [
+          { label: "Treadmill or Bike HIIT", detail: "14 rounds · 30s sprint / 40s walk", tip: "Sprints at RPE 8–9 — hard but repeatable. Use the full 40s recovery; quality sprints beat sloppy ones.", highlight: true },
+        ],
+      },
+      {
+        name: "COOLDOWN",
+        badge: "4 min",
+        items: [
+          { label: "Standing Stomach Vacuum", detail: "3×15s", tip: "Standing works against gravity — hardest variation. Full exhale, draw in and up." },
+          { label: "Shoulders / Traps / Arms Stretch", detail: "60s", tip: "Cross-arm, overhead reach, gentle neck tilts. 20s+ each." },
+        ],
+      },
+    ],
+  },
+  {
+    id: "sat",
+    label: "SAT",
+    title: "Full Body",
+    subtitle: "Metabolic Circuit · Week Closer",
+    color: "#C84BFF",
+    icon: "🧩",
+    burn: "~580 kcal",
+    cardioType: "Progressive Zone 2→3",
+    sections: [
+      {
+        name: "WARM-UP",
+        badge: "10 min",
+        items: [
+          { label: "Row Machine", detail: "5 min · moderate", tip: "Warm the whole system without burning glycogen you need for the circuit." },
+          { label: "BW Lunges + Push-Ups + Glute Band Walks", detail: "2 rounds", tip: "Lunges prep hips/knees for deadlifts, push-ups prime pressing, band walks fire the glute medius." },
+        ],
+      },
+      {
+        name: "METABOLIC CIRCUIT — STRAIGHT SETS",
+        badge: "6 exercises · 33 min",
+        note: "Rest: 45s between ALL sets — shortest of the week. Lower → upper → lower sequencing keeps heart rate high without supersets.",
+        items: [
+          {
+            label: "1. Deadlift (Barbell or Trap Bar)",
+            detail: "3×6–8 · 45s rest · RPE 7 strict · START: 95–115lbs",
+            tip: "Chest up, spine neutral, bar over mid-foot, push the floor away. Recruits more total muscle than any other lift.",
+            coachZ: "Before each set, visualize the entire posterior chain — hams, glutes, back — firing as one unit. Squeeze the glutes hard at lockout and stand tall for 1s like you're finishing a pose.",
+            avoid: "Don't grind reps. 6–8 clean, rack it.",
+          },
+          {
+            label: "2. Hack Squat Machine",
+            detail: "3×8–10 · 45s rest · START: 1 plate/side (90lbs sled)",
+            tip: "3s controlled descent, feet shoulder-width slightly toed out. Zero spinal compression after deadlifts.",
+            coachZ: "Ride the 3-second descent into a deep quad stretch and feel the sweep loading. The hack squat builds the outer-quad line that shows through pants when you lean out.",
+            avoid: "Don't let knees cave or heels lift off the platform.",
+          },
+          {
+            label: "3. Lat Pulldown",
+            detail: "3×8–10 · 45s rest",
+            tip: "3s stretch at top of every rep.",
+            coachZ: "Same cue as Tuesday: shoulders down FIRST, then elbows to back pockets. End the final set with a 10s lat-spread pose — close the week's back work the way you opened it.",
+            avoid: "Don't swing the torso for momentum.",
+          },
+          {
+            label: "4. DB / Machine Chest Press",
+            detail: "3×12 · 45s rest",
+            tip: "Elbows 45°, 2s descent, strong press. Keeps heart rate up between lower-body slots.",
+            coachZ: "Squeeze the pecs together at the top of every rep — imagine crushing a walnut between them. Fatigued-state contractions like these harden the chest line.",
+            avoid: "Don't bounce at the bottom of the rep.",
+          },
+          {
+            label: "5. Leg Extension → Leg Curl (Alternating Sets)",
+            detail: "3×12 each · 45s rest between",
+            tip: "Alternating straight sets, NOT a superset — extension, rest 45s, curl, rest 45s, repeat.",
+            coachZ: "Extension: 1s squeeze at the top, visualize the teardrop above the knee. Curl: toes pointed, hamstring-only. Constant tension both ways — never let the stack touch down.",
+            avoid: "Don't hyperextend on extension or let hips rise on curls.",
+          },
+          {
+            label: "6. Plank-to-Push-Up",
+            detail: "2×10 · 45s rest",
+            tip: "Forearm plank to straight-arm plank one hand at a time. Squeeze glutes to kill hip sway.",
+            coachZ: "Move like every transition is being judged — zero hip rotation, rigid line. Core control under fatigue is what makes the vacuum and posing work translate to how you carry yourself.",
+            avoid: "Don't let hips rotate. Slow down before form breaks.",
+          },
+        ],
+      },
+      {
+        name: "PROGRESSIVE CARDIO",
+        badge: "20 min · Builds to Zone 3",
+        note: "Ends the training week at peak output.",
+        items: [
+          { label: "Treadmill or Bike", detail: "10 min RPE 6 → 10 min RPE 7–7.5", tip: "Raise speed or incline every 2–3 min in the back half. Finish breathing hard. Adds ~60–80 kcal vs flat steady-state.", highlight: true },
+        ],
+      },
+      {
+        name: "DEEP CORE & POSING PRACTICE",
+        badge: "10 min",
+        note: "Coach Z: how you stand is half the look. Saturday closes with posing — it hardens muscle, builds mind-muscle connection, and teaches you to display the physique you're building.",
+        items: [
+          { label: "Plank", detail: "2×60s", tip: "Longest holds of the week. Lock glutes, core, quads. Breathe through it." },
+          { label: "Bird Dog", detail: "2×10 per side", tip: "Opposite arm-leg, lower back flat, zero rotation. Slow and deliberate." },
+          { label: "Standing Stomach Vacuum", detail: "3×15s", tip: "15+ vacuum sets per week is the dose that produces visible waist-tightening over 4–6 weeks." },
+          { label: "🅩 Posing Practice", detail: "5 min · mirror or phone camera", tip: "Coach Z's Saturday ritual: front double-bicep (10s), lat spread (10s), side chest (10s), vacuum pose (15s) — 2 rounds each. Flexing under weekly fatigue hardens the physique and shows you exactly where you're progressing. Film it monthly; the camera tracks fat loss better than the scale.", highlight: true },
+          { label: "Full Body Static Stretch", detail: "3–4 min", tip: "Quads, hams, hip flexors, lats, chest, shoulders. 20–30s each." },
+        ],
+      },
+    ],
+  },
+];
+
+const dailyLayer = [
+  { icon: "👣", title: "10,000 Steps Daily", body: "Including rest days. NEAT can account for 300–500 kcal/day — often more than the workout itself. Park far, take stairs, walk calls." },
+  { icon: "🚶", title: "Rest Days = Active", body: "Wed & Sun: 25–35 min brisk walk. Keeps weekly burn high, speeds recovery via blood flow, maintains the step target. Foam roll + stretch after." },
+  { icon: "🍽️", title: "Protein 140–150g", body: "Top of the range while cutting. Preserves muscle in a deficit, highest thermic effect of any macro (~25% burns during digestion), keeps you full." },
+  { icon: "📉", title: "Deficit: 400–500 kcal", body: "With ~550 kcal/session training burn + 10k steps, this produces ~0.5–0.7 kg/week fat loss — the max sustainable rate that protects muscle." },
+  { icon: "💧", title: "Hydration + Sleep", body: "3L+ water daily. 7–8 hrs sleep — under 6 hrs shifts weight loss away from fat and toward muscle. Sleep is a fat-loss tool." },
+  { icon: "⚖️", title: "Weigh-In Protocol", body: "Daily, same time, after bathroom, before food. Track the 7-day average, not the daily number. The trend line is the truth." },
+  { icon: "📈", title: "Double Progression Rule", body: "When all 3 sets hit the TOP of the rep range with clean form, add 5lbs (upper body) or 10lbs (lower body) next session. As a returning lifter, expect rapid 'muscle memory' gains for 8–12 weeks — ride them. Log every session." },
+  { icon: "🥘", title: "Indian Protein Playbook", body: "Hitting 140g on a desi diet: paneer (18g/100g), dal + rice (complete protein combo), Greek yogurt/hung curd (10g/100g), eggs, chicken, soy chunks (52g/100g — the cheapest protein in India). Watch ghee/oil portions — that's where hidden deficit-killers live." },
+];
+
+const coachZPrinciples = [
+  { num: "01", title: "Visualize Before Every Set", body: "See the target muscle doing the work before you touch the weight. Mind-muscle connection measurably increases activation — and in a deficit, every rep has to count." },
+  { num: "02", title: "3-Second Eccentrics on All Compounds", body: "The lowering phase is where muscle is built and kept. Slow negatives preserve more muscle per set while cutting — exactly the trade you want." },
+  { num: "03", title: "Flex & Pose Between Sets", body: "10s hard contractions of the target muscle during rest. Keeps blood in the muscle, sharpens the connection, and turns rest periods into extra stimulus for free." },
+  { num: "04", title: "The Squeeze IS the Rep", body: "1–2s peak contraction holds on every isolation movement. Travel moves weight; the squeeze builds the look." },
+  { num: "05", title: "Width Beats Everything", body: "Lateral delts and lats get priority cues all week. The wider the frame, the smaller the waist appears — the V-taper is a fat-loss multiplier you build, not burn." },
+  { num: "06", title: "How You Stand Is Half the Look", body: "Saturday posing practice + all-day posture (shoulders back, chest up, core braced). Film monthly — the camera tracks fat loss better than the scale ever will." },
+];
+
+const weekMap = [
+  { day: "MON", focus: "Push + Split Zone 2", burn: 520, color: "#FF4D1C" },
+  { day: "TUE", focus: "Pull + HIIT Finisher", burn: 560, color: "#00C2FF" },
+  { day: "WED", focus: "Rest — 30min Walk + 10k Steps", burn: 220, color: "#444" },
+  { day: "THU", focus: "Legs + Post-Lift Zone 2", burn: 600, color: "#00E87A" },
+  { day: "FRI", focus: "Shoulders + Primary HIIT", burn: 540, color: "#FFB800" },
+  { day: "SAT", focus: "Full Body + Posing Practice", burn: 580, color: "#C84BFF" },
+  { day: "SUN", focus: "Rest — 30min Walk + 10k Steps", burn: 220, color: "#444" },
+];
+
+// ─────────────────────────────────────────────
+// APP LAYER (standalone): logging · timers · trackers
+// Saves to browser localStorage (on-device, survives between sessions)
+// ─────────────────────────────────────────────
+
+function strengthItems(day) {
+  const out = [];
+  day.sections.forEach((sec) => {
+    if (sec.name.includes("STRENGTH") || sec.name.includes("CIRCUIT")) {
+      sec.items.forEach((it, idx) => {
+        const sets = it.detail && it.detail.startsWith("2×") ? 2 : 3;
+        out.push({ id: day.id + "-" + sec.name.slice(0,4) + "-" + idx, label: it.label, sets });
+      });
+    }
+  });
+  return out;
+}
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+
+function loadLS(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch { return fallback; }
+}
+function saveLS(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.error(e); }
+}
+
+function RestTimer({ seconds, color, onClose }) {
+  const [left, setLeft] = useState(seconds);
+  useEffect(() => {
+    if (left <= 0) return;
+    const t = setTimeout(() => setLeft(left - 1), 1000);
+    return () => clearTimeout(t);
+  }, [left]);
+  const done = left <= 0;
+  return (
+    <div style={{ position: "fixed", bottom: 16, left: "50%", transform: "translateX(-50%)", zIndex: 50,
+      background: done ? "#00E87A" : "#161616", color: done ? "#000" : "#fff",
+      border: "1px solid " + (done ? "#00E87A" : color), borderRadius: 30, padding: "10px 18px",
+      display: "flex", alignItems: "center", gap: 14, boxShadow: "0 6px 24px rgba(0,0,0,0.5)", minWidth: 200, justifyContent: "space-between" }}>
+      <span style={{ fontSize: 12, letterSpacing: 1 }}>{done ? "✓ REST DONE — GO" : "REST"}</span>
+      {!done && <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, color }}>{Math.floor(left/60)}:{String(left%60).padStart(2,"0")}</span>}
+      <button onClick={onClose} style={{ background: "transparent", border: "none", color: done ? "#000" : "#888", fontSize: 16, cursor: "pointer" }}>✕</button>
+    </div>
+  );
+}
+
+function WorkoutApp() {
+  const [activeDay, setActiveDay] = useState("mon");
+  const [expandedEx, setExpandedEx] = useState(null);
+  const [view, setView] = useState("workouts");
+
+  const [log, setLog] = useState(() => loadLS("cz_log", {}));
+  const [exMode, setExMode] = useState(() => loadLS("cz_exmode", {}));
+  const [timer, setTimer] = useState(null);
+  const [daily, setDaily] = useState(() => loadLS("cz_daily", {}));
+
+  const day = days.find((d) => d.id === activeDay);
+  const dk = todayKey();
+  const totalBurn = weekMap.reduce((s, d) => s + d.burn, 0);
+  const maxBurn = Math.max.apply(null, weekMap.map((d) => d.burn));
+
+  useEffect(() => { saveLS("cz_log", log); }, [log]);
+  useEffect(() => { saveLS("cz_exmode", exMode); }, [exMode]);
+  useEffect(() => { saveLS("cz_daily", daily); }, [daily]);
+
+  const dayLog = log[dk] || {};
+  const today = daily[dk] || { bw: "", protein: "", water: "", sleep: "", steps: "", checks: {} };
+
+  function updateSet(exId, setIdx, field, val, totalSets) {
+    setLog((prev) => {
+      const d = Object.assign({}, prev[dk] || {});
+      const ex = d[exId] ? { sets: prev[dk][exId].sets.slice() } : { sets: Array.from({ length: totalSets }, () => ({ w: "", r: "", done: false })) };
+      ex.sets[setIdx] = Object.assign({}, ex.sets[setIdx], { [field]: val });
+      d[exId] = ex;
+      return Object.assign({}, prev, { [dk]: d });
+    });
+  }
+  function toggleMode(exId) { setExMode((p) => Object.assign({}, p, { [exId]: p[exId] === "check" ? "full" : "check" })); }
+  function setDailyField(field, val) { setDaily((prev) => Object.assign({}, prev, { [dk]: Object.assign({ checks: {} }, prev[dk] || {}, { [field]: val }) })); }
+  function toggleCheck(name) {
+    setDaily((prev) => {
+      const t = prev[dk] || { checks: {} };
+      const checks = Object.assign({}, t.checks, { [name]: !(t.checks && t.checks[name]) });
+      return Object.assign({}, prev, { [dk]: Object.assign({}, t, { checks }) });
+    });
+  }
+
+  const bwHistory = Object.keys(daily)
+    .filter((k) => daily[k].bw && !isNaN(parseFloat(daily[k].bw)))
+    .sort()
+    .map((date) => ({ date, bw: parseFloat(daily[date].bw) }));
+  const last7 = bwHistory.slice(-7);
+  const bw7avg = last7.length ? (last7.reduce((s, x) => s + x.bw, 0) / last7.length).toFixed(1) : null;
+
+  const dailyChecks = ["10,000 steps", "140g protein", "3L water", "7–8h sleep", "Workout done", "Posing/vacuum"];
+
+  return (
+    <div style={{ fontFamily: "'DM Mono', 'Courier New', monospace", background: "#0A0A0A", minHeight: "100vh", color: "#E8E8E0", paddingBottom: 80 }}>
+      {timer && <RestTimer seconds={timer} color={day.color} onClose={() => setTimer(null)} />}
+
+      <div style={{ background: "#111", borderBottom: "1px solid #222", padding: "22px 24px 16px" }}>
+        <div style={{ maxWidth: 700, margin: "0 auto" }}>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: "#555", marginBottom: 6 }}>CRUNCH HUNTINGDON VALLEY · FAT LOSS × COACH Z</div>
+          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 32, letterSpacing: 3, lineHeight: 1, color: "#fff" }}>
+            TRAINING APP <span style={{ color: CZ }}>🅩</span>
+          </h1>
+          <div style={{ fontSize: 10, color: "#555", marginTop: 6, letterSpacing: 1.5 }}>
+            78KG · BENCH ~90 · SQUAT ~114 · {new Date().toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ background: "#0D0D0D", padding: "10px 24px", borderBottom: "1px solid #1A1A1A", position: "sticky", top: 0, zIndex: 20 }}>
+        <div style={{ maxWidth: 700, margin: "0 auto", display: "flex", gap: 6 }}>
+          {[["workouts", "💪 TRAIN"], ["daily", "📊 DAILY"], ["system", "🔥 BURN MAP"], ["coachz", "🅩 METHOD"]].map(([v, lbl]) => (
+            <button key={v} className="view-btn" onClick={() => setView(v)}
+              style={{ flex: 1, padding: "9px 4px", borderRadius: 6, fontSize: 9, letterSpacing: 1,
+                background: view === v ? (v === "coachz" ? CZ : "#E8E8E0") : "#1A1A1A",
+                color: view === v ? "#000" : "#666", fontWeight: 500 }}>{lbl}</button>
+          ))}
+        </div>
+      </div>
+
+      {view === "workouts" && (
+        <React.Fragment>
+          <div style={{ background: "#0F0F0F", borderBottom: "1px solid #1A1A1A", padding: "12px 24px" }}>
+            <div style={{ maxWidth: 700, margin: "0 auto", display: "flex", gap: 8 }}>
+              {days.map((d) => (
+                <button key={d.id} className="day-btn" onClick={() => { setActiveDay(d.id); setExpandedEx(null); }}
+                  style={{ flex: 1, padding: "10px 4px", background: activeDay === d.id ? d.color : "#1A1A1A",
+                    color: activeDay === d.id ? "#000" : "#666", borderRadius: 6, fontSize: 10, fontWeight: 500, letterSpacing: 1.5 }}>
+                  <div style={{ fontSize: 16, marginBottom: 2 }}>{d.icon}</div>{d.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px 20px 0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+              <div>
+                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 30, letterSpacing: 2, color: day.color, lineHeight: 1 }}>{day.title}</h2>
+                <div style={{ fontSize: 10, color: "#555", letterSpacing: 1.5, marginTop: 4 }}>{day.subtitle} · {day.cardioType}</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 9, letterSpacing: 2, color: "#444" }}>EST. SESSION BURN</div>
+                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, color: day.color }}>{day.burn}</div>
+              </div>
+            </div>
+
+            {day.sections.map((sec, si) => {
+              const isStrength = sec.name.includes("STRENGTH") || sec.name.includes("CIRCUIT");
+              return (
+                <div key={si} className="sec-card" style={{ marginBottom: 12, background: "#111", borderRadius: 8, overflow: "hidden", border: "1px solid #1E1E1E" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "#161616", borderBottom: "1px solid #1E1E1E" }}>
+                    <div style={{ fontSize: 10, letterSpacing: 3, fontWeight: 500, color: "#CCC" }}>{sec.name}</div>
+                    {sec.badge && <div style={{ fontSize: 9, padding: "3px 8px", background: day.color + "22", color: day.color, borderRadius: 3, letterSpacing: 1 }}>{sec.badge}</div>}
+                  </div>
+                  {sec.note && <div style={{ padding: "8px 14px", background: "#0D0D0D", borderBottom: "1px solid #1A1A1A", fontSize: 10, color: "#777", lineHeight: 1.6 }}>{sec.note}</div>}
+                  <div>
+                    {sec.items.map((item, ii) => {
+                      const key = si + "-" + ii;
+                      const exId = day.id + "-" + sec.name.slice(0,4) + "-" + ii;
+                      const isOpen = expandedEx === key;
+                      const hasTip = item.tip || item.avoid || item.coachZ;
+                      const nSets = item.detail && item.detail.startsWith("2×") ? 2 : 3;
+                      const mode = exMode[exId] || "full";
+                      const exLog = dayLog[exId];
+                      const restMatch = item.detail && item.detail.match(/(\d+)s rest/);
+                      const rest = restMatch ? parseInt(restMatch[1]) : 60;
+
+                      return (
+                        <div key={ii} style={{ borderBottom: ii < sec.items.length - 1 ? "1px solid #181818" : "none" }}>
+                          <div className={hasTip ? "ex-row" : ""} onClick={hasTip ? () => setExpandedEx(isOpen ? null : key) : undefined}
+                            style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 14px", gap: 12,
+                              background: item.highlight && !isOpen ? day.color + "08" : isOpen ? day.color + "0D" : "transparent",
+                              borderLeft: (isOpen || item.highlight) ? "3px solid " + day.color : "3px solid transparent" }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: 12, color: isOpen || item.highlight ? day.color : "#DDD", fontWeight: isOpen || item.highlight ? 500 : 400 }}>
+                                {item.label}{item.coachZ && <span style={{ color: CZ, marginLeft: 6, fontSize: 11 }}>🅩</span>}
+                              </div>
+                              {item.detail && <div style={{ fontSize: 10, color: "#555", marginTop: 3, lineHeight: 1.5 }}>{item.detail}</div>}
+                            </div>
+                            {hasTip && <div style={{ fontSize: 13, color: isOpen ? day.color : "#444", flexShrink: 0, marginTop: 1 }}>{isOpen ? "▲" : "▼"}</div>}
+                          </div>
+
+                          {isStrength && (
+                            <div style={{ padding: "0 14px 12px" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                                <button onClick={() => toggleMode(exId)}
+                                  style={{ background: "#1A1A1A", border: "1px solid #2A2A2A", color: "#888", fontSize: 9, letterSpacing: 1,
+                                    padding: "4px 8px", borderRadius: 4, cursor: "pointer", fontFamily: "'DM Mono',monospace" }}>
+                                  {mode === "full" ? "◉ WEIGHT+REPS · tap for quick" : "◉ QUICK CHECK · tap for full"}
+                                </button>
+                                <button onClick={() => setTimer(rest)}
+                                  style={{ background: day.color + "1A", border: "1px solid " + day.color + "55", color: day.color, fontSize: 9, letterSpacing: 1,
+                                    padding: "4px 10px", borderRadius: 4, cursor: "pointer", fontFamily: "'DM Mono',monospace" }}>
+                                  ⏱ REST {rest}s
+                                </button>
+                              </div>
+
+                              {mode === "full" ? (
+                                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                  {Array.from({ length: nSets }).map((_, sIdx) => {
+                                    const s = (exLog && exLog.sets[sIdx]) || { w: "", r: "", done: false };
+                                    return (
+                                      <div key={sIdx} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                        <span style={{ fontSize: 10, color: "#555", width: 28 }}>S{sIdx + 1}</span>
+                                        <input className="gym" inputMode="decimal" placeholder="lbs" value={s.w}
+                                          onChange={(e) => updateSet(exId, sIdx, "w", e.target.value, nSets)} style={{ flex: 1 }} />
+                                        <span style={{ color: "#444" }}>×</span>
+                                        <input className="gym" inputMode="numeric" placeholder="reps" value={s.r}
+                                          onChange={(e) => updateSet(exId, sIdx, "r", e.target.value, nSets)} style={{ flex: 1 }} />
+                                        <button onClick={() => { updateSet(exId, sIdx, "done", !s.done, nSets); if (!s.done) setTimer(rest); }}
+                                          style={{ width: 32, height: 32, borderRadius: 6, border: "none", cursor: "pointer", flexShrink: 0,
+                                            background: s.done ? "#00E87A" : "#1A1A1A", color: s.done ? "#000" : "#555", fontSize: 14 }}>✓</button>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <div style={{ display: "flex", gap: 8 }}>
+                                  {Array.from({ length: nSets }).map((_, sIdx) => {
+                                    const s = (exLog && exLog.sets[sIdx]) || { done: false };
+                                    return (
+                                      <button key={sIdx} onClick={() => { updateSet(exId, sIdx, "done", !s.done, nSets); if (!s.done) setTimer(rest); }}
+                                        style={{ flex: 1, padding: "10px", borderRadius: 6, border: "none", cursor: "pointer",
+                                          background: s.done ? "#00E87A" : "#1A1A1A", color: s.done ? "#000" : "#666", fontSize: 11, letterSpacing: 1 }}>
+                                        SET {sIdx + 1} {s.done ? "✓" : ""}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {isOpen && hasTip && (
+                            <div className="tip-box" style={{ padding: "0 14px 12px", background: day.color + "08" }}>
+                              {item.tip && (<div style={{ marginBottom: (item.coachZ || item.avoid) ? 8 : 0 }}>
+                                <div style={{ fontSize: 9, letterSpacing: 2, color: day.color, marginBottom: 4 }}>✓ TECHNIQUE</div>
+                                <div style={{ fontSize: 11, color: "#AAA", lineHeight: 1.7 }}>{item.tip}</div></div>)}
+                              {item.coachZ && (<div style={{ marginBottom: item.avoid ? 8 : 0, padding: "8px 10px", background: CZ + "10", borderLeft: "2px solid " + CZ, borderRadius: 3 }}>
+                                <div style={{ fontSize: 9, letterSpacing: 2, color: CZ, marginBottom: 4 }}>🅩 COACH Z</div>
+                                <div style={{ fontSize: 11, color: "#BBB", lineHeight: 1.7 }}>{item.coachZ}</div></div>)}
+                              {item.avoid && (<div>
+                                <div style={{ fontSize: 9, letterSpacing: 2, color: "#FF6B6B", marginBottom: 4 }}>✗ AVOID</div>
+                                <div style={{ fontSize: 11, color: "#888", lineHeight: 1.7 }}>{item.avoid}</div></div>)}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </React.Fragment>
+      )}
+
+      {view === "daily" && (
+        <div style={{ maxWidth: 700, margin: "0 auto", padding: "22px 20px 0" }}>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: 2, color: "#fff", marginBottom: 4 }}>TODAY'S NUMBERS</h2>
+          <div style={{ fontSize: 10, color: "#666", marginBottom: 18 }}>Auto-saved on this device. Log daily for the trend line.</div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
+            {[
+              { f: "bw", label: "BODYWEIGHT (kg)", ph: "78.0", mode: "decimal" },
+              { f: "protein", label: "PROTEIN (g) · 140 target", ph: "140", mode: "numeric" },
+              { f: "water", label: "WATER (L) · 3 target", ph: "3.0", mode: "decimal" },
+              { f: "sleep", label: "SLEEP (h) · 7–8 target", ph: "7.5", mode: "decimal" },
+              { f: "steps", label: "STEPS · 10,000 target", ph: "10000", mode: "numeric" },
+            ].map((x) => (
+              <div key={x.f}>
+                <div style={{ fontSize: 9, letterSpacing: 2, color: "#555", marginBottom: 5 }}>{x.label}</div>
+                <input className="gym" inputMode={x.mode} placeholder={x.ph} value={today[x.f] || ""} onChange={(e) => setDailyField(x.f, e.target.value)} />
+              </div>
+            ))}
+          </div>
+
+          <div style={{ fontSize: 9, letterSpacing: 3, color: "#444", marginBottom: 10 }}>24-HOUR CHECKLIST</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 22 }}>
+            {dailyChecks.map((c) => {
+              const on = today.checks && today.checks[c];
+              return (
+                <button key={c} onClick={() => toggleCheck(c)}
+                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 12px", borderRadius: 7, cursor: "pointer", textAlign: "left",
+                    border: "1px solid " + (on ? "#00E87A55" : "#222"), background: on ? "#00E87A12" : "#111",
+                    color: on ? "#00E87A" : "#888", fontSize: 11, fontFamily: "'DM Mono',monospace" }}>
+                  <span style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, background: on ? "#00E87A" : "#1A1A1A",
+                    color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>{on ? "✓" : ""}</span>
+                  {c}
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ fontSize: 9, letterSpacing: 3, color: "#444", marginBottom: 4 }}>BODYWEIGHT TREND</div>
+          {bw7avg ? (
+            <div style={{ background: "#111", border: "1px solid #1E1E1E", borderRadius: 8, padding: "16px", marginBottom: 22 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
+                <div>
+                  <div style={{ fontSize: 9, letterSpacing: 2, color: "#555" }}>7-DAY AVERAGE</div>
+                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 34, color: "#00E87A", lineHeight: 1 }}>{bw7avg}<span style={{ fontSize: 14, color: "#555" }}> kg</span></div>
+                </div>
+                <div style={{ fontSize: 10, color: "#666", textAlign: "right" }}>{bwHistory.length} entries logged<br />{last7.length} in last 7</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 50 }}>
+                {last7.map((p, i) => {
+                  const vals = last7.map((x) => x.bw);
+                  const min = Math.min.apply(null, vals) - 0.3, max = Math.max.apply(null, vals) + 0.3;
+                  const h = max === min ? 50 : ((p.bw - min) / (max - min)) * 46 + 4;
+                  return <div key={i} title={p.date + ": " + p.bw + "kg"} style={{ flex: 1, height: h, background: "#00E87A55", borderTop: "2px solid #00E87A", borderRadius: 2 }} />;
+                })}
+              </div>
+            </div>
+          ) : (
+            <div style={{ background: "#111", border: "1px solid #1E1E1E", borderRadius: 8, padding: "16px", marginBottom: 22, fontSize: 11, color: "#666", lineHeight: 1.6 }}>
+              Log your bodyweight a few days running and your 7-day trend appears here. Same time daily, after bathroom, before food.
+            </div>
+          )}
+        </div>
+      )}
+
+      {view === "system" && (
+        <div style={{ maxWidth: 700, margin: "0 auto", padding: "24px 20px 0" }}>
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ fontSize: 10, letterSpacing: 4, color: "#444", marginBottom: 4 }}>WEEKLY BURN MAP</div>
+            <div style={{ fontSize: 10, color: "#666", marginBottom: 16, lineHeight: 1.6 }}>
+              Total: <span style={{ color: "#E8E8E0" }}>~{totalBurn.toLocaleString()} kcal/week</span> from training + walks, before the food deficit.
+            </div>
+            {weekMap.map((d, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <div style={{ width: 36, fontSize: 10, color: d.color === "#444" ? "#555" : d.color, letterSpacing: 1, flexShrink: 0 }}>{d.day}</div>
+                <div style={{ flex: 1, height: 22, background: "#141414", borderRadius: 4, overflow: "hidden" }}>
+                  <div className="burn-bar" style={{ width: ((d.burn / maxBurn) * 100) + "%", height: "100%",
+                    background: d.color === "#444" ? "#2A2A2A" : d.color + "55", borderRight: "2px solid " + (d.color === "#444" ? "#555" : d.color),
+                    display: "flex", alignItems: "center", paddingLeft: 8 }}>
+                    <span style={{ fontSize: 9, color: "#CCC", whiteSpace: "nowrap" }}>{d.focus}</span>
+                  </div>
+                </div>
+                <div style={{ width: 44, fontSize: 11, color: "#999", textAlign: "right", flexShrink: 0 }}>{d.burn}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ fontSize: 10, letterSpacing: 4, color: "#444", marginBottom: 4 }}>THE 24-HOUR LAYER</div>
+          <div style={{ fontSize: 10, color: "#666", marginBottom: 16, lineHeight: 1.6 }}>The gym is 75 minutes. Fat loss is decided in the other 22.75 hours.</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 28 }}>
+            {dailyLayer.map((p, i) => (
+              <div key={i} style={{ background: "#111", border: "1px solid #1E1E1E", borderRadius: 8, padding: "14px" }}>
+                <div style={{ fontSize: 16, marginBottom: 6 }}>{p.icon}</div>
+                <div style={{ fontSize: 11, fontWeight: 500, color: "#CCC", marginBottom: 6 }}>{p.title}</div>
+                <div style={{ fontSize: 10, color: "#666", lineHeight: 1.65 }}>{p.body}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background: "#111", border: "1px solid #222", borderRadius: 8, padding: "16px", display: "flex", gap: 24, flexWrap: "wrap" }}>
+            {[
+              { label: "WEEKLY TRAINING BURN", val: "~" + totalBurn.toLocaleString() + " kcal" },
+              { label: "FOOD DEFICIT", val: "400–500 kcal/day" },
+              { label: "PROJECTED LOSS", val: "0.5–0.7 kg/wk" },
+              { label: "PROTEIN", val: "140–150g/day" },
+              { label: "STEPS", val: "10,000/day" },
+            ].map((stat, i) => (
+              <div key={i}>
+                <div style={{ fontSize: 9, letterSpacing: 3, color: "#444", marginBottom: 4 }}>{stat.label}</div>
+                <div style={{ fontSize: 13, color: "#CCC" }}>{stat.val}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {view === "coachz" && (
+        <div style={{ maxWidth: 700, margin: "0 auto", padding: "24px 20px 0" }}>
+          <div style={{ marginBottom: 20 }}>
+            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 2, color: CZ, lineHeight: 1 }}>THE COACH Z METHOD</h2>
+            <div style={{ fontSize: 10, color: "#666", marginTop: 8, lineHeight: 1.7 }}>
+              Ziad Mansour's aesthetic methodology, woven into every strength exercise (look for the 🅩 tag). The fat-loss structure burns the fat; these cues decide what the physique looks like when it's revealed.
+            </div>
+          </div>
+          {coachZPrinciples.map((p, i) => (
+            <div key={i} style={{ display: "flex", gap: 14, background: "#111", border: "1px solid #1E1E1E", borderLeft: "3px solid " + CZ, borderRadius: 8, padding: "14px 16px", marginBottom: 10 }}>
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, color: CZ + "66", flexShrink: 0, lineHeight: 1 }}>{p.num}</div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "#DDD", marginBottom: 4 }}>{p.title}</div>
+                <div style={{ fontSize: 10, color: "#777", lineHeight: 1.7 }}>{p.body}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<WorkoutApp />);
+</script>
+</body>
 </html>
