@@ -1,0 +1,49 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.svg {
+  display: block;
+}
+
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -56%);
+  text-align: center;
+}
+
+.value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--off-white);
+  line-height: 1;
+}
+
+.pct {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ghost);
+}
+
+.label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--off-white);
+  text-align: center;
+}
+
+.sublabel {
+  font-size: 11px;
+  color: var(--ghost);
+  text-align: center;
+}
