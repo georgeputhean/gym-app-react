@@ -558,11 +558,44 @@ function saveLS(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.error(e); }
 }
 
+function playBell() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // Boxing bell = inharmonic partials with sharp attack + long decay
+    const partials = [
+      { freq: 620,  gain: 1.0,  decay: 3.0 },
+      { freq: 1240, gain: 0.55, decay: 2.2 },
+      { freq: 1860, gain: 0.35, decay: 1.6 },
+      { freq: 2600, gain: 0.20, decay: 1.1 },
+      { freq: 890,  gain: 0.45, decay: 2.4 },
+      { freq: 1580, gain: 0.25, decay: 1.8 },
+    ];
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.7, ctx.currentTime);
+    master.connect(ctx.destination);
+    partials.forEach(({ freq, gain, decay }) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      g.gain.setValueAtTime(0, ctx.currentTime);
+      g.gain.linearRampToValueAtTime(gain, ctx.currentTime + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + decay);
+      osc.connect(g); g.connect(master);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + decay);
+    });
+  } catch(e) {}
+}
+
 function RestTimer({ seconds, color, onClose, onGo }) {
   const [left, setLeft] = useState(seconds);
   useEffect(() => {
     if (left <= 0) return;
-    const t = setTimeout(() => setLeft(left - 1), 1000);
+    const t = setTimeout(() => {
+      const next = left - 1;
+      if (next === 0) playBell();
+      setLeft(next);
+    }, 1000);
     return () => clearTimeout(t);
   }, [left]);
   const done = left <= 0;
