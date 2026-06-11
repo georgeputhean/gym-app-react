@@ -653,8 +653,20 @@ function WorkoutApp() {
     return null;
   }
 
-  const secKey = (si) => activeDay + "-sec-" + si;
+  const secKey = (si) => dk + "-" + activeDay + "-sec-" + si;
   const firstIncompleteSec = day.sections.findIndex((_, si) => !sectionsDone[secKey(si)]);
+
+  function resetDay() {
+    setSectionsDone((p) => {
+      const n = Object.assign({}, p);
+      day.sections.forEach((_, si) => { delete n[secKey(si)]; });
+      return n;
+    });
+    setExpandedEx(null);
+    setExpandedSecs({});
+    setNextTarget(null);
+    setTimer(null);
+  }
 
   const firstIncompleteExId = strengthOrder.find(({ exId, nSets }) => {
     const e = (log[dk] || {})[exId];
@@ -696,7 +708,7 @@ function WorkoutApp() {
         <div style={{ maxWidth: 700, margin: "0 auto", display: "flex", gap: 6 }}>
           {[["workouts", "💪 TRAIN"], ["daily", "📊 DAILY"], ["system", "🔥 BURN MAP"], ["coachz", "🅩 METHOD"]].map(([v, lbl]) => (
             <button key={v} className="view-btn" onClick={() => setView(v)}
-              style={{ flex: 1, padding: "9px 4px", borderRadius: 6, fontSize: 9, letterSpacing: 1,
+              style={{ flex: 1, padding: "13px 4px", borderRadius: 6, fontSize: 9, letterSpacing: 1,
                 background: view === v ? (v === "coachz" ? CZ : "#E8E8E0") : "#1A1A1A",
                 color: view === v ? "#000" : "#666", fontWeight: 500 }}>{lbl}</button>
           ))}
@@ -709,23 +721,30 @@ function WorkoutApp() {
             <div style={{ maxWidth: 700, margin: "0 auto", display: "flex", gap: 8 }}>
               {days.map((d) => (
                 <button key={d.id} className="day-btn" onClick={() => { setActiveDay(d.id); setExpandedEx(null); }}
-                  style={{ flex: 1, padding: "10px 4px", background: activeDay === d.id ? d.color : "#1A1A1A",
+                  style={{ flex: 1, padding: "14px 4px", background: activeDay === d.id ? d.color : "#1A1A1A",
                     color: activeDay === d.id ? "#000" : "#666", borderRadius: 6, fontSize: 10, fontWeight: 500, letterSpacing: 1.5 }}>
-                  <div style={{ fontSize: 16, marginBottom: 2 }}>{d.icon}</div>{d.label}
+                  <div style={{ fontSize: 18, marginBottom: 4 }}>{d.icon}</div>{d.label}
                 </button>
               ))}
             </div>
           </div>
 
           <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px 20px 0" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
               <div>
                 <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 30, letterSpacing: 2, color: day.color, lineHeight: 1 }}>{day.title}</h2>
                 <div style={{ fontSize: 10, color: "#555", letterSpacing: 1.5, marginTop: 4 }}>{day.subtitle} · {day.cardioType}</div>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 9, letterSpacing: 2, color: "#444" }}>EST. SESSION BURN</div>
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, color: day.color }}>{day.burn}</div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 9, letterSpacing: 2, color: "#444" }}>EST. SESSION BURN</div>
+                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, color: day.color }}>{day.burn}</div>
+                </div>
+                <button onClick={resetDay}
+                  style={{ fontSize: 9, letterSpacing: 1.5, padding: "8px 14px", borderRadius: 6, border: "1px solid #333",
+                    background: "transparent", color: "#555", cursor: "pointer", fontFamily: "'DM Mono',monospace" }}>
+                  ↺ RESET DAY
+                </button>
               </div>
             </div>
 
@@ -748,7 +767,7 @@ function WorkoutApp() {
                           setSectionsDone((p) => Object.assign({}, p, { [sk]: !p[sk] }));
                           if (!secDone) setExpandedSecs((p) => Object.assign({}, p, { [sk]: false }));
                         }}
-                        style={{ width: 26, height: 26, borderRadius: "50%", border: "2px solid " + (secDone ? "#00E87A" : isCurrentSec ? day.color : "#444"),
+                        style={{ width: 36, height: 36, borderRadius: "50%", border: "2px solid " + (secDone ? "#00E87A" : isCurrentSec ? day.color : "#444"),
                           background: secDone ? "#00E87A" : "transparent", color: secDone ? "#000" : (isCurrentSec ? day.color : "#555"),
                           fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✓</button>
                       <div style={{ fontSize: 10, letterSpacing: 3, fontWeight: 500, color: secDone ? "#00E87A" : isCurrentSec ? day.color : "#CCC",
@@ -779,7 +798,7 @@ function WorkoutApp() {
                       return (
                         <div key={ii} style={{ borderBottom: ii < sec.items.length - 1 ? "1px solid #181818" : "none" }}>
                           <div className={hasTip ? "ex-row" : ""} onClick={hasTip && !allDone ? () => setExpandedEx(isOpen ? null : key) : undefined}
-                            style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 14px", gap: 12,
+                            style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "14px 14px", gap: 12,
                               background: allDone ? "#00E87A08" : isCurrent ? day.color + "0D" : "transparent",
                               borderLeft: allDone ? "3px solid #00E87A" : isCurrent ? "3px solid " + day.color : "3px solid transparent" }}>
                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -793,15 +812,15 @@ function WorkoutApp() {
                               </div>
                               {item.detail && !allDone && <div style={{ fontSize: 10, color: "#555", marginTop: 3, lineHeight: 1.5 }}>{item.detail}</div>}
                             </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 18, flexShrink: 0 }}>
+                              {hasTip && !allDone && <div style={{ fontSize: 18, color: isOpen ? day.color : "#444", flexShrink: 0, padding: "4px 6px" }}>{isOpen ? "▲" : "▼"}</div>}
                               {isStrength && (
                                 <button onClick={(e) => { e.stopPropagation(); markAllDone(exId, nSets, allDone); }}
-                                  style={{ width: 28, height: 28, borderRadius: "50%", border: "2px solid " + (allDone ? "#00E87A" : "#333"), background: allDone ? "#00E87A" : "transparent",
-                                    color: allDone ? "#000" : "#555", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                  style={{ width: 36, height: 36, borderRadius: "50%", border: "2px solid " + (allDone ? "#00E87A" : "#444"), background: allDone ? "#00E87A" : "transparent",
+                                    color: allDone ? "#000" : "#666", fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                                   ✓
                                 </button>
                               )}
-                              {hasTip && !allDone && <div style={{ fontSize: 13, color: isOpen ? day.color : "#444", flexShrink: 0, marginTop: 1 }}>{isOpen ? "▲" : "▼"}</div>}
                             </div>
                           </div>
 
@@ -838,8 +857,8 @@ function WorkoutApp() {
                                         <input className="gym" inputMode="numeric" placeholder="reps" value={s.r}
                                           onChange={(e) => updateSet(exId, sIdx, "r", e.target.value, nSets)} style={{ flex: 1 }} />
                                         <button onClick={() => { updateSet(exId, sIdx, "done", !s.done, nSets); if (!s.done) { setTimer(rest); setNextTarget(getNextTarget(exId, sIdx, nSets)); } else { setNextTarget(null); } }}
-                                          style={{ width: 32, height: 32, borderRadius: 6, border: "none", cursor: "pointer", flexShrink: 0,
-                                            background: s.done ? "#00E87A" : "#1A1A1A", color: s.done ? "#000" : "#555", fontSize: 14 }}>✓</button>
+                                          style={{ width: 44, height: 44, borderRadius: 8, border: "none", cursor: "pointer", flexShrink: 0,
+                                            background: s.done ? "#00E87A" : "#1A1A1A", color: s.done ? "#000" : "#555", fontSize: 18 }}>✓</button>
                                       </div>
                                     );
                                   })}
@@ -852,7 +871,7 @@ function WorkoutApp() {
                                     return (
                                       <button key={sIdx} id={"set-" + exId + "-" + sIdx}
                                         onClick={() => { updateSet(exId, sIdx, "done", !s.done, nSets); if (!s.done) { setTimer(rest); setNextTarget(getNextTarget(exId, sIdx, nSets)); } else { setNextTarget(null); } }}
-                                        style={{ flex: 1, padding: "10px", borderRadius: 6, border: isNext ? "2px solid " + day.color : "none", cursor: "pointer",
+                                        style={{ flex: 1, padding: "16px 10px", borderRadius: 8, border: isNext ? "2px solid " + day.color : "none", cursor: "pointer",
                                           background: s.done ? "#00E87A" : "#1A1A1A", color: s.done ? "#000" : (isNext ? day.color : "#666"), fontSize: 11, letterSpacing: 1,
                                           animation: isNext ? "nextPulse 1.2s ease-in-out infinite" : "none" }}>
                                         SET {sIdx + 1} {s.done ? "✓" : (isNext ? "▶" : "")}
