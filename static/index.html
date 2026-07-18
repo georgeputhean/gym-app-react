@@ -652,6 +652,7 @@ function WorkoutApp() {
 
   const [syncCode, setSyncCode] = useState(() => loadLS("cz_synccode", ""));
   const [syncStatus, setSyncStatus] = useState(syncDb ? "idle" : "unavailable");
+  const [showSyncCode, setShowSyncCode] = useState(false);
   const applyingRemoteRef = useRef(false);
   const hasSyncedOnceRef = useRef(false);
   const unsubRef = useRef(null);
@@ -818,9 +819,14 @@ function WorkoutApp() {
               {(syncStatus === "idle") && <span style={{ color: "#444" }} title="Off — enter a code to sync">○</span>}
               {syncStatus === "unavailable" && <span style={{ color: "#444" }} title="Cloud sync not configured">✕</span>}
             </span>
-            <input className="gym" placeholder={syncDb ? "sync code — same on every device" : "cloud sync not configured"}
+            <input className="gym" type={showSyncCode ? "text" : "password"} autoComplete="off" autoCapitalize="none" spellCheck="false"
+              placeholder={syncDb ? "sync code — same on every device" : "cloud sync not configured"}
               value={syncCode} onChange={(e) => setSyncCode(e.target.value)} disabled={!syncDb}
               style={{ flex: 1, padding: "6px 8px", fontSize: 11 }} />
+            <button onClick={() => setShowSyncCode((s) => !s)} disabled={!syncDb}
+              style={{ background: "transparent", border: "none", color: "#555", fontSize: 13, cursor: syncDb ? "pointer" : "default", flexShrink: 0, padding: "2px 4px" }}>
+              {showSyncCode ? "🙈" : "👁"}
+            </button>
           </div>
         </div>
       </div>
