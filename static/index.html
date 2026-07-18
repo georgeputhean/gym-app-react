@@ -12,6 +12,9 @@
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { background:#0A0A0A; }
@@ -558,6 +561,25 @@ function saveLS(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.error(e); }
 }
 
+// ─── CLOUD SYNC (Firebase) ───
+// Fill in your own Firebase project's web config below (Firebase Console → Project settings →
+// General → Your apps → Web app). These values are safe to embed client-side — they are not secrets.
+const firebaseConfig = {
+  apiKey: "AIzaSyA49unhsaYO9qhfHALJ8ihU6b2JtBJidAE",
+  authDomain: "gym-app-react-b5c43.firebaseapp.com",
+  projectId: "gym-app-react-b5c43",
+  storageBucket: "gym-app-react-b5c43.firebasestorage.app",
+  messagingSenderId: "163722501260",
+  appId: "1:163722501260:web:fa2636064ede4975daafa9",
+};
+let syncDb = null;
+let syncAuthReady = null;
+if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+  firebase.initializeApp(firebaseConfig);
+  syncDb = firebase.firestore();
+  syncAuthReady = firebase.auth().signInAnonymously().catch((e) => console.error("Sync auth failed", e));
+}
+
 function playBell() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -628,6 +650,12 @@ function WorkoutApp() {
   const [expandedSecs, setExpandedSecs] = useState({});
   const [daily, setDaily] = useState(() => loadLS("cz_daily", {}));
 
+  const [syncCode, setSyncCode] = useState(() => loadLS("cz_synccode", ""));
+  const [syncStatus, setSyncStatus] = useState(syncDb ? "idle" : "unavailable");
+  const applyingRemoteRef = useRef(false);
+  const hasSyncedOnceRef = useRef(false);
+  const unsubRef = useRef(null);
+
   const day = days.find((d) => d.id === activeDay);
   const dk = todayKey();
   const totalBurn = weekMap.reduce((s, d) => s + d.burn, 0);
@@ -637,6 +665,53 @@ function WorkoutApp() {
   useEffect(() => { saveLS("cz_exmode", exMode); }, [exMode]);
   useEffect(() => { saveLS("cz_daily", daily); }, [daily]);
   useEffect(() => { saveLS("cz_sections", sectionsDone); }, [sectionsDone]);
+  useEffect(() => { saveLS("cz_synccode", syncCode); }, [syncCode]);
+
+  // Subscribe to the cloud doc whenever the sync code changes.
+  useEffect(() => {
+    if (!syncDb || !syncCode.trim()) {
+      if (unsubRef.current) { unsubRef.current(); unsubRef.current = null; }
+      setSyncStatus(syncDb ? "idle" : "unavailable");
+      return;
+    }
+    let cancelled = false;
+    hasSyncedOnceRef.current = false;
+    setSyncStatus("connecting");
+    syncAuthReady.then(() => {
+      if (cancelled) return;
+      const ref = syncDb.collection("gymAppSync").doc(syncCode.trim());
+      unsubRef.current = ref.onSnapshot((snap) => {
+        const data = snap.data();
+        if (data) {
+          applyingRemoteRef.current = true;
+          if (data.cz_log) setLog(data.cz_log);
+          if (data.cz_daily) setDaily(data.cz_daily);
+          if (data.cz_sections) setSectionsDone(data.cz_sections);
+          if (data.cz_exmode) setExMode(data.cz_exmode);
+        } else if (!hasSyncedOnceRef.current) {
+          // Brand-new sync code — seed the cloud doc from this device's current data.
+          ref.set({ cz_log: log, cz_daily: daily, cz_sections: sectionsDone, cz_exmode: exMode, updatedAt: Date.now() });
+        }
+        hasSyncedOnceRef.current = true;
+        setSyncStatus("synced");
+      }, (err) => { console.error(err); setSyncStatus("error"); });
+    });
+    return () => { cancelled = true; if (unsubRef.current) { unsubRef.current(); unsubRef.current = null; } };
+  }, [syncCode]);
+
+  // Push local changes to the cloud doc (debounced), skipping writes that just came from the cloud.
+  useEffect(() => {
+    if (!syncDb || !syncCode.trim() || !hasSyncedOnceRef.current) return;
+    if (applyingRemoteRef.current) { applyingRemoteRef.current = false; return; }
+    const t = setTimeout(() => {
+      syncAuthReady.then(() => {
+        syncDb.collection("gymAppSync").doc(syncCode.trim()).set({
+          cz_log: log, cz_daily: daily, cz_sections: sectionsDone, cz_exmode: exMode, updatedAt: Date.now(),
+        }).catch((e) => { console.error(e); setSyncStatus("error"); });
+      });
+    }, 800);
+    return () => clearTimeout(t);
+  }, [log, daily, sectionsDone, exMode, syncCode]);
 
   const dayLog = log[dk] || {};
   const today = daily[dk] || { bw: "", protein: "", water: "", sleep: "", steps: "", checks: {} };
@@ -733,6 +808,19 @@ function WorkoutApp() {
           </h1>
           <div style={{ fontSize: 10, color: "#555", marginTop: 6, letterSpacing: 1.5 }}>
             78KG · BENCH ~90 · SQUAT ~114 · {new Date().toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12, paddingTop: 12, borderTop: "1px solid #1E1E1E" }}>
+            <span style={{ fontSize: 9, letterSpacing: 1.5, color: "#555", flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
+              SYNC
+              {syncStatus === "synced" && <span style={{ color: "#00E87A" }} title="Live — everything (workouts, logs, daily numbers) syncs across devices">●</span>}
+              {syncStatus === "connecting" && <span style={{ color: "#FFB800" }} title="Connecting…">●</span>}
+              {syncStatus === "error" && <span style={{ color: "#FF6B6B" }} title="Sync error — check console">●</span>}
+              {(syncStatus === "idle") && <span style={{ color: "#444" }} title="Off — enter a code to sync">○</span>}
+              {syncStatus === "unavailable" && <span style={{ color: "#444" }} title="Cloud sync not configured">✕</span>}
+            </span>
+            <input className="gym" placeholder={syncDb ? "sync code — same on every device" : "cloud sync not configured"}
+              value={syncCode} onChange={(e) => setSyncCode(e.target.value)} disabled={!syncDb}
+              style={{ flex: 1, padding: "6px 8px", fontSize: 11 }} />
           </div>
         </div>
       </div>
@@ -943,6 +1031,7 @@ function WorkoutApp() {
       {view === "daily" && (
         <div style={{ maxWidth: 700, margin: "0 auto", padding: "22px 20px 0" }}>
           <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: 2, color: "#fff", marginBottom: 4 }}>TODAY'S NUMBERS</h2>
+
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
             <div style={{ fontSize: 10, color: "#666" }}>Auto-saved on this device. Log daily for the trend line.</div>
             <button onClick={() => {
