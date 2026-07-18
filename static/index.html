@@ -52,16 +52,8 @@ const days = [
     color: "#FF4D1C",
     icon: "🔥",
     burn: "~520 kcal",
-    cardioType: "Zone 2 ×2 (split dose)",
+    cardioType: "Post-lift Zone 2",
     sections: [
-      {
-        name: "CARDIO DOSE 1 — PRE-LIFT",
-        badge: "12 min · Zone 2",
-        note: "Split-dose cardio: two shorter bouts stack EPOC twice and keep lifting quality high.",
-        items: [
-          { label: "Incline Treadmill Walk", detail: "12 min · RPE 5–6 · 3.0–3.5mph / 8–10%", tip: "Upright posture, no rails — holding rails cuts the burn by up to 30%. This dose primes adrenaline so fat mobilizes during the lifting that follows." },
-        ],
-      },
       {
         name: "WARM-UP",
         badge: "8 min",
@@ -74,14 +66,14 @@ const days = [
       {
         name: "STRENGTH — MUSCLE PRESERVATION",
         badge: "6 exercises · 32 min",
-        note: "Rest: 75s compounds (1–2) · 60s isolation (3–6). LOADS ARE SET FROM YOUR ACTUAL NUMBERS (bench 80×4 ≈ 90lb max). Progression: when all 3 sets hit the top of the rep range, add 5lbs next session. Coach Z: visualize before every set, 3s eccentrics, flex during rest.",
+        note: "Rest: 75s compounds (1–2) · 60s isolation (3–6). Pick a load that makes the LAST set of each lift genuinely hard — 0–1 reps left in the tank. In a deficit that effort level, not the calories you burn lifting, is what protects muscle — so let the weight climb as your strength returns instead of staying light. Maintaining or adding load week-to-week is your #1 sign muscle is being retained. Coach Z: visualize before every set, 3s eccentrics, flex during rest.",
         items: [
           {
             label: "1. Barbell Bench Press",
             detail: "3×10–12 · 75s rest · START: 55–60lbs (≈65% of your ~90lb max)",
-            tip: "Elbows 45°, drive feet into floor, push the bar away from you. Stop 2 reps shy of failure — failure training in a deficit eats recovery you don't have.",
+            tip: "Elbows 45°, drive feet into floor, push the bar away from you. Take the LAST set to 0–1 reps in reserve — that hard effort is the muscle-retention signal. On earlier sets leave ~2 in reserve so bar speed and form stay crisp.",
             coachZ: "Before unracking, visualize your pecs doing the work — not your arms. 3-second lowering on every rep. Between sets, do a hard 10s pec flex (hands pressed together) to keep the mind-muscle connection lit.",
-            avoid: "Don't bounce the bar or chase failure.",
+            avoid: "Don't bounce the bar or grind ugly reps past form breakdown.",
           },
           {
             label: "2. Incline DB Press",
@@ -121,11 +113,11 @@ const days = [
         ],
       },
       {
-        name: "CARDIO DOSE 2 — POST-LIFT",
-        badge: "15 min · Zone 2",
-        note: "Glycogen partially depleted from lifting — body shifts to fat oxidation faster.",
+        name: "CARDIO — POST-LIFT",
+        badge: "27 min · Zone 2",
+        note: "Cardio goes after the lifting, not before — pre-lift cardio blunts your pressing strength, and the lift is what protects muscle. These minutes add straight to today's calorie deficit.",
         items: [
-          { label: "Incline Treadmill Walk", detail: "15 min · RPE 5–6", tip: "Same settings as Dose 1. Bump incline 1–2% in the final 5 minutes if you have gas left." },
+          { label: "Incline Treadmill Walk", detail: "27 min · RPE 5–6 · 3.0–3.5mph / 8–10%", tip: "Upright posture, no rails — holding the rails cuts the work. Bump incline 1–2% in the final 5 minutes if you have gas left." },
         ],
       },
       {
@@ -147,16 +139,8 @@ const days = [
     color: "#00C2FF",
     icon: "🧲",
     burn: "~560 kcal",
-    cardioType: "Zone 2 + HIIT finisher",
+    cardioType: "Post-lift Zone 2 + HIIT finisher",
     sections: [
-      {
-        name: "CARDIO DOSE 1 — PRE-LIFT",
-        badge: "10 min · Zone 2",
-        note: "Row machine preferred — warms the back musculature while burning.",
-        items: [
-          { label: "Row Machine", detail: "10 min · conversational pace · damper 4–5", tip: "Full leg drive, controlled arm pull. Legs do 60% of the work — don't yank with your arms." },
-        ],
-      },
       {
         name: "WARM-UP",
         badge: "5 min",
@@ -168,7 +152,7 @@ const days = [
       {
         name: "STRENGTH — MUSCLE PRESERVATION",
         badge: "6 exercises · 32 min",
-        note: "Rest: 75s compounds (1–3) · 60s isolation (4–6). Coach Z: use straps on heavy pulling so grip never limits back stimulus.",
+        note: "Rest: 75s compounds (1–3) · 60s isolation (4–6). Last set of each lift to 0–1 reps in reserve — let the load climb week to week; that effort is the muscle-retention signal. Coach Z: use straps on heavy pulling so grip never limits back stimulus.",
         items: [
           {
             label: "1. Lat Pulldown / Pull-Ups",
@@ -215,9 +199,17 @@ const days = [
         ],
       },
       {
+        name: "CARDIO — POST-LIFT",
+        badge: "10 min · Zone 2",
+        note: "Cardio after the lift, never before — it keeps your pulling strength intact and adds to today's deficit.",
+        items: [
+          { label: "Row Machine", detail: "10 min · conversational pace · damper 4–5", tip: "Full leg drive, controlled arm pull. Legs do 60% of the work — don't yank with your arms." },
+        ],
+      },
+      {
         name: "HIIT FINISHER",
-        badge: "🔑 10 min · Max Burn",
-        note: "Second weekly HIIT dose — roughly doubles total EPOC vs one session.",
+        badge: "🔑 10 min · Sprint Finisher",
+        note: "Second short HIIT dose of the week. HIIT and steady-state burn about the same fat when the minutes match — this one's here for conditioning and time efficiency, kept away from leg day so it never taxes your squats.",
         items: [
           { label: "Bike Sprints", detail: "8 rounds · 20s sprint / 55s easy spin", tip: "Bike on pull day — legs fresh, zero impact before Thursday. Sprints at RPE 8–9. If round 8 feels like round 1, you went too easy.", highlight: true },
         ],
@@ -246,7 +238,7 @@ const days = [
       {
         name: "WARM-UP",
         badge: "10 min",
-        note: "No pre-lift cardio today — squat and hinge patterns need fresh legs. The lifts ARE the calorie burners.",
+        note: "No pre-lift cardio today — squats and hinges need fresh legs, and protecting that strength is what protects muscle. Cardio comes after.",
         items: [
           { label: "Stationary Bike", detail: "5 min · easy spin · 80–90 RPM", tip: "Low resistance, pure joint lubrication for knees, hips, ankles." },
           { label: "BW Squats + Leg Swings + Glute Bridges", detail: "2 rounds", tip: "Full-depth squats, front and lateral swings, 2s holds on bridges. Don't skip — cold leg compounds are the fastest route to injury." },
@@ -255,7 +247,7 @@ const days = [
       {
         name: "STRENGTH — BIGGEST BURN OF THE WEEK",
         badge: "6 exercises · 35 min",
-        note: "Rest: 90s compounds (1–3) · 75s machines (4–5) · 60s calves. Loads anchored to your squat (90×8 ≈ 114lb max). Progression: all sets hit top of range → add 10lbs next session. Legs are ~60% of your muscle mass — this day raises resting metabolism most.",
+        note: "Rest: 90s compounds (1–3) · 75s machines (4–5) · 60s calves. Drive the last set of each lift to 1–2 reps in reserve — legs earn a touch more caution than upper body, but the effort still has to be real. Let the load climb as strength returns; that's your muscle-retention signal. Legs are ~60% of your muscle mass, so holding strength here matters most.",
         items: [
           {
             label: "1. Barbell Back Squat",
@@ -304,7 +296,7 @@ const days = [
       {
         name: "CARDIO — POST-LIFT",
         badge: "20 min · Zone 2",
-        note: "Glycogen is maximally depleted after leg compounds — highest fat-oxidation window of your entire week.",
+        note: "Legs are your biggest muscles, so this session plus the walk after it is your largest single-day calorie output. Total calories are what move fat — this is just the day they add up fastest.",
         items: [
           { label: "Incline Treadmill Walk", detail: "20 min · RPE 5–6 · 3.0mph / 8%", tip: "Legs will be heavy — expected. Slightly slower speed is fine; keep the incline. No rails.", highlight: true },
         ],
@@ -324,7 +316,7 @@ const days = [
     id: "fri",
     label: "FRI",
     title: "Shoulders + HIIT",
-    subtitle: "Delts · Arms · Peak EPOC",
+    subtitle: "Delts · Arms · HIIT Finisher",
     color: "#FFB800",
     icon: "💥",
     burn: "~540 kcal",
@@ -341,7 +333,7 @@ const days = [
       {
         name: "STRENGTH — MUSCLE PRESERVATION",
         badge: "6 exercises · 30 min",
-        note: "Rest: 60s ALL sets — tightest of the week. Coach Z: this is the aesthetics day — every set ends with a squeeze, every rest includes a flex.",
+        note: "Rest: 60s ALL sets — tightest of the week. Last set of each lift to 0–1 reps in reserve; keep the load honest even on the shorter rest. Coach Z: this is the aesthetics day — every set ends with a squeeze, every rest includes a flex.",
         items: [
           {
             label: "1. Overhead Press (BB or DB)",
@@ -397,8 +389,8 @@ const days = [
       },
       {
         name: "PRIMARY HIIT SESSION",
-        badge: "🔑 16 min · Peak EPOC",
-        note: "Biggest afterburn of the week — elevates calorie burn 12–24 hours after.",
+        badge: "🔑 16 min · Sprint Session",
+        note: "Your main conditioning dose of the week. The afterburn is real but small — it's the sprint minutes themselves adding to today's deficit that matter. Placed on shoulder day so it never eats into your squats or pulls.",
         items: [
           { label: "Treadmill or Bike HIIT", detail: "14 rounds · 30s sprint / 40s walk", tip: "Sprints at RPE 8–9 — hard but repeatable. Use the full 40s recovery; quality sprints beat sloppy ones.", highlight: true },
         ],
@@ -417,7 +409,7 @@ const days = [
     id: "sat",
     label: "SAT",
     title: "Full Body",
-    subtitle: "Metabolic Circuit · Week Closer",
+    subtitle: "Full-Body Strength · Week Closer",
     color: "#C84BFF",
     icon: "🧩",
     burn: "~580 kcal",
@@ -427,53 +419,53 @@ const days = [
         name: "WARM-UP",
         badge: "10 min",
         items: [
-          { label: "Row Machine", detail: "5 min · moderate", tip: "Warm the whole system without burning glycogen you need for the circuit." },
+          { label: "Row Machine", detail: "5 min · moderate", tip: "Warm the whole system without burning glycogen you need for the session." },
           { label: "BW Lunges + Push-Ups + Glute Band Walks", detail: "2 rounds", tip: "Lunges prep hips/knees for deadlifts, push-ups prime pressing, band walks fire the glute medius." },
         ],
       },
       {
-        name: "METABOLIC CIRCUIT — STRAIGHT SETS",
+        name: "FULL-BODY STRENGTH — STRAIGHT SETS",
         badge: "6 exercises · 33 min",
-        note: "Rest: 45s between ALL sets — shortest of the week. Lower → upper → lower sequencing keeps heart rate high without supersets.",
+        note: "Rest: 75s on deadlift and hack squat, 60s on the rest — enough to keep the loads heavy so this stays real strength work, not a rushed circuit. Last set of each lift to 1–2 reps in reserve. Lower → upper → lower sequencing keeps things moving without ever shortchanging the compounds.",
         items: [
           {
             label: "1. Deadlift (Barbell or Trap Bar)",
-            detail: "3×6–8 · 45s rest · RPE 7 strict · START: 95–115lbs",
+            detail: "3×6–8 · 75s rest · last set 1–2 RIR · START: 95–115lbs",
             tip: "Chest up, spine neutral, bar over mid-foot, push the floor away. Recruits more total muscle than any other lift.",
             coachZ: "Before each set, visualize the entire posterior chain — hams, glutes, back — firing as one unit. Squeeze the glutes hard at lockout and stand tall for 1s like you're finishing a pose.",
             avoid: "Don't grind reps. 6–8 clean, rack it.",
           },
           {
             label: "2. Hack Squat Machine",
-            detail: "3×8–10 · 45s rest · START: 1 plate/side (90lbs sled)",
+            detail: "3×8–10 · 75s rest · START: 1 plate/side (90lbs sled)",
             tip: "3s controlled descent, feet shoulder-width slightly toed out. Zero spinal compression after deadlifts.",
             coachZ: "Ride the 3-second descent into a deep quad stretch and feel the sweep loading. The hack squat builds the outer-quad line that shows through pants when you lean out.",
             avoid: "Don't let knees cave or heels lift off the platform.",
           },
           {
             label: "3. Lat Pulldown",
-            detail: "3×8–10 · 45s rest",
+            detail: "3×8–10 · 60s rest",
             tip: "3s stretch at top of every rep.",
             coachZ: "Same cue as Tuesday: shoulders down FIRST, then elbows to back pockets. End the final set with a 10s lat-spread pose — close the week's back work the way you opened it.",
             avoid: "Don't swing the torso for momentum.",
           },
           {
             label: "4. DB / Machine Chest Press",
-            detail: "3×12 · 45s rest",
-            tip: "Elbows 45°, 2s descent, strong press. Keeps heart rate up between lower-body slots.",
+            detail: "3×12 · 60s rest",
+            tip: "Elbows 45°, 2s descent, strong press. Full control both directions.",
             coachZ: "Squeeze the pecs together at the top of every rep — imagine crushing a walnut between them. Fatigued-state contractions like these harden the chest line.",
             avoid: "Don't bounce at the bottom of the rep.",
           },
           {
             label: "5. Leg Extension → Leg Curl (Alternating Sets)",
-            detail: "3×12 each · 45s rest between",
-            tip: "Alternating straight sets, NOT a superset — extension, rest 45s, curl, rest 45s, repeat.",
+            detail: "3×12 each · 60s rest between",
+            tip: "Alternating straight sets, NOT a superset — extension, rest 60s, curl, rest 60s, repeat.",
             coachZ: "Extension: 1s squeeze at the top, visualize the teardrop above the knee. Curl: toes pointed, hamstring-only. Constant tension both ways — never let the stack touch down.",
             avoid: "Don't hyperextend on extension or let hips rise on curls.",
           },
           {
             label: "6. Plank-to-Push-Up",
-            detail: "2×10 · 45s rest",
+            detail: "2×10 · 60s rest",
             tip: "Forearm plank to straight-arm plank one hand at a time. Squeeze glutes to kill hip sway.",
             coachZ: "Move like every transition is being judged — zero hip rotation, rigid line. Core control under fatigue is what makes the vacuum and posing work translate to how you carry yourself.",
             avoid: "Don't let hips rotate. Slow down before form breaks.",
@@ -511,7 +503,7 @@ const dailyLayer = [
   { icon: "📉", title: "Deficit: 400–500 kcal", body: "With ~550 kcal/session training burn + 10k steps, this produces ~0.5–0.7 kg/week fat loss — the max sustainable rate that protects muscle." },
   { icon: "💧", title: "Hydration + Sleep", body: "3L+ water daily. 7–8 hrs sleep — under 6 hrs shifts weight loss away from fat and toward muscle. Sleep is a fat-loss tool." },
   { icon: "⚖️", title: "Weigh-In Protocol", body: "Daily, same time, after bathroom, before food. Track the 7-day average, not the daily number. The trend line is the truth." },
-  { icon: "📈", title: "Double Progression Rule", body: "When all 3 sets hit the TOP of the rep range with clean form, add 5lbs (upper body) or 10lbs (lower body) next session. As a returning lifter, expect rapid 'muscle memory' gains for 8–12 weeks — ride them. Log every session." },
+  { icon: "📈", title: "Effort + Double Progression", body: "Take the LAST set of every lift close to failure — 0–1 reps in reserve on upper body, 1–2 on legs. That effort, not the calories you burn lifting, is what protects muscle in a deficit. When all 3 sets hit the TOP of the rep range with clean form, add 5lbs (upper) or 10lbs (lower) next session. Holding or adding load week-to-week is your #1 sign muscle is being retained — so log every session. Returning lifters ride fast 'muscle memory' gains for 8–12 weeks." },
   { icon: "🥘", title: "Indian Protein Playbook", body: "Hitting 140g on a desi diet: paneer (18g/100g), dal + rice (complete protein combo), Greek yogurt/hung curd (10g/100g), eggs, chicken, soy chunks (52g/100g — the cheapest protein in India). Watch ghee/oil portions — that's where hidden deficit-killers live." },
 ];
 
@@ -525,7 +517,7 @@ const coachZPrinciples = [
 ];
 
 const weekMap = [
-  { day: "MON", focus: "Push + Split Zone 2", burn: 520, color: "#FF4D1C" },
+  { day: "MON", focus: "Push + Post-Lift Zone 2", burn: 520, color: "#FF4D1C" },
   { day: "TUE", focus: "Pull + HIIT Finisher", burn: 560, color: "#00C2FF" },
   { day: "WED", focus: "Rest — 30min Walk + 10k Steps", burn: 220, color: "#444" },
   { day: "THU", focus: "Legs + Post-Lift Zone 2", burn: 600, color: "#00E87A" },
