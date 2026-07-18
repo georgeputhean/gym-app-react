@@ -642,15 +642,14 @@ function WorkoutApp() {
   const [expandedSecs, setExpandedSecs] = useState({});
   const [daily, setDaily] = useState(() => loadLS("cz_daily", {}));
 
-  const [syncCode, setSyncCode] = useState(() => loadLS("cz_synccode", ""));
-  const [syncStatus, setSyncStatus] = useState(syncDb ? "idle" : "unavailable");
-  const [showSyncCode, setShowSyncCode] = useState(false);
+  const [syncStatus, setSyncStatus] = useState(syncDb ? "connecting" : "unavailable");
   const applyingRemoteRef = useRef(false);
   const hasSyncedOnceRef = useRef(false);
   const unsubRef = useRef(null);
 
   const day = days.find((d) => d.id === activeDay);
   const dk = todayKey();
+  const syncCode = "coachz-" + dk; // rotates automatically at midnight — no code to type or remember
   const totalBurn = weekMap.reduce((s, d) => s + d.burn, 0);
   const maxBurn = Math.max.apply(null, weekMap.map((d) => d.burn));
 
@@ -658,21 +657,16 @@ function WorkoutApp() {
   useEffect(() => { saveLS("cz_exmode", exMode); }, [exMode]);
   useEffect(() => { saveLS("cz_daily", daily); }, [daily]);
   useEffect(() => { saveLS("cz_sections", sectionsDone); }, [sectionsDone]);
-  useEffect(() => { saveLS("cz_synccode", syncCode); }, [syncCode]);
 
-  // Subscribe to the cloud doc whenever the sync code changes.
+  // Subscribe to today's cloud doc. Re-runs automatically when the date (and so syncCode) rolls over.
   useEffect(() => {
-    if (!syncDb || !syncCode.trim()) {
-      if (unsubRef.current) { unsubRef.current(); unsubRef.current = null; }
-      setSyncStatus(syncDb ? "idle" : "unavailable");
-      return;
-    }
+    if (!syncDb) return;
     let cancelled = false;
     hasSyncedOnceRef.current = false;
     setSyncStatus("connecting");
     syncAuthReady.then(() => {
       if (cancelled) return;
-      const ref = syncDb.collection("gymAppSync").doc(syncCode.trim());
+      const ref = syncDb.collection("gymAppSync").doc(syncCode);
       unsubRef.current = ref.onSnapshot((snap) => {
         const data = snap.data();
         if (data) {
@@ -682,7 +676,7 @@ function WorkoutApp() {
           if (data.cz_sections) setSectionsDone(data.cz_sections);
           if (data.cz_exmode) setExMode(data.cz_exmode);
         } else if (!hasSyncedOnceRef.current) {
-          // Brand-new sync code — seed the cloud doc from this device's current data.
+          // First device to open the app today — seed today's doc from this device's full local history.
           ref.set({ cz_log: log, cz_daily: daily, cz_sections: sectionsDone, cz_exmode: exMode, updatedAt: Date.now() });
         }
         hasSyncedOnceRef.current = true;
@@ -692,13 +686,13 @@ function WorkoutApp() {
     return () => { cancelled = true; if (unsubRef.current) { unsubRef.current(); unsubRef.current = null; } };
   }, [syncCode]);
 
-  // Push local changes to the cloud doc (debounced), skipping writes that just came from the cloud.
+  // Push local changes to today's cloud doc (debounced), skipping writes that just came from the cloud.
   useEffect(() => {
-    if (!syncDb || !syncCode.trim() || !hasSyncedOnceRef.current) return;
+    if (!syncDb || !hasSyncedOnceRef.current) return;
     if (applyingRemoteRef.current) { applyingRemoteRef.current = false; return; }
     const t = setTimeout(() => {
       syncAuthReady.then(() => {
-        syncDb.collection("gymAppSync").doc(syncCode.trim()).set({
+        syncDb.collection("gymAppSync").doc(syncCode).set({
           cz_log: log, cz_daily: daily, cz_sections: sectionsDone, cz_exmode: exMode, updatedAt: Date.now(),
         }).catch((e) => { console.error(e); setSyncStatus("error"); });
       });
@@ -802,23 +796,15 @@ function WorkoutApp() {
           <div style={{ fontSize: 10, color: "#555", marginTop: 6, letterSpacing: 1.5 }}>
             78KG · BENCH ~90 · SQUAT ~114 · {new Date().toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12, paddingTop: 12, borderTop: "1px solid #1E1E1E" }}>
-            <span style={{ fontSize: 9, letterSpacing: 1.5, color: "#555", flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12, paddingTop: 12, borderTop: "1px solid #1E1E1E" }}>
+            <span style={{ fontSize: 9, letterSpacing: 1.5, color: "#555", display: "flex", alignItems: "center", gap: 4 }}>
               SYNC
-              {syncStatus === "synced" && <span style={{ color: "#00E87A" }} title="Live — everything (workouts, logs, daily numbers) syncs across devices">●</span>}
+              {syncStatus === "synced" && <span style={{ color: "#00E87A" }} title="Live — today's data syncs automatically across your devices">●</span>}
               {syncStatus === "connecting" && <span style={{ color: "#FFB800" }} title="Connecting…">●</span>}
               {syncStatus === "error" && <span style={{ color: "#FF6B6B" }} title="Sync error — check console">●</span>}
-              {(syncStatus === "idle") && <span style={{ color: "#444" }} title="Off — enter a code to sync">○</span>}
               {syncStatus === "unavailable" && <span style={{ color: "#444" }} title="Cloud sync not configured">✕</span>}
             </span>
-            <input className="gym" type={showSyncCode ? "text" : "password"} autoComplete="off" autoCapitalize="none" spellCheck="false"
-              placeholder={syncDb ? "sync code — same on every device" : "cloud sync not configured"}
-              value={syncCode} onChange={(e) => setSyncCode(e.target.value)} disabled={!syncDb}
-              style={{ flex: 1, padding: "6px 8px", fontSize: 11 }} />
-            <button onClick={() => setShowSyncCode((s) => !s)} disabled={!syncDb}
-              style={{ background: "transparent", border: "none", color: "#555", fontSize: 13, cursor: syncDb ? "pointer" : "default", flexShrink: 0, padding: "2px 4px" }}>
-              {showSyncCode ? "🙈" : "👁"}
-            </button>
+            {syncDb && <span style={{ fontSize: 9, color: "#444" }}>· auto, no code needed</span>}
           </div>
         </div>
       </div>
