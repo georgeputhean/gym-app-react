@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Training App — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet" />
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="../plan-template.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background:#0A0A0A; }
+  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: #111; } ::-webkit-scrollbar-thumb { background: #333; }
+  input.gym, textarea.gym, select.gym {
+    background:#0D0D0D; border:1px solid #2A2A2A; color:#EEE; border-radius:5px; padding:7px 8px;
+    font-family:'DM Mono',monospace; font-size:12px; width:100%;
+  }
+  input.gym:focus, textarea.gym:focus, select.gym:focus { outline:none; border-color:#555; }
+  textarea.gym { resize: vertical; }
+  button { font-family: 'DM Mono', monospace; cursor: pointer; }
+  label.fld { display: block; font-size: 9px; letterSpacing: 1px; color: #666; margin-bottom: 4px; letter-spacing: 1.5px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/jsx-manual" id="app-source">
+const { useState, useEffect } = React;
+
+// ─── Firebase (shared project with the main app) ───
+const firebaseConfig = {
+  apiKey: "AIzaSyA49unhsaYO9qhfHALJ8ihU6b2JtBJidAE",
+  authDomain: "gym-app-react-b5c43.firebaseapp.com",
+  projectId: "gym-app-react-b5c43",
+  storageBucket: "gym-app-react-b5c43.firebasestorage.app",
+  messagingSenderId: "163722501260",
+  appId: "1:163722501260:web:fa2636064ede4975daafa9",
+};
+let db = null;
+let authReady = null;
+if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  authReady = firebase.auth().signInAnonymously().catch((e) => console.error("Auth failed", e));
+}
+
+// Soft gate only — this file is public and the passcode is visible in source.
+// It stops casual browsing, not a determined actor. Change this string to your own.
+const ADMIN_PASSCODE = "coachz-admin";
+
+function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+function arrMove(arr, idx, dir) {
+  const j = idx + dir;
+  if (j < 0 || j >= arr.length) return arr;
+  const n = arr.slice();
+  const tmp = n[idx]; n[idx] = n[j]; n[j] = tmp;
+  return n;
+}
+function arrRemove(arr, idx) { const n = arr.slice(); n.splice(idx, 1); return n; }
+function arrUpdate(arr, idx, patch) { const n = arr.slice(); n[idx] = Object.assign({}, n[idx], patch); return n; }
+
+function blankItem() {
+  return { label: "New Exercise", detail: "", tip: "", coachZ: "", avoid: "", sets: 3, restSeconds: 60 };
+}
+function blankSection() {
+  return { name: "NEW SECTION", badge: "", note: "", isStrength: false, items: [] };
+}
+function blankDay() {
+  return { id: "day" + Date.now().toString(36), label: "DAY", title: "New Day", subtitle: "", color: "#888888", icon: "🏋️", burn: "~500 kcal", cardioType: "", sections: [] };
+}
+
+function PasscodeGate({ onUnlock }) {
+  const [value, setValue] = useState("");
+  const [err, setErr] = useState(false);
+  function submit() {
+    if (value === ADMIN_PASSCODE) { sessionStorage.setItem("cz_admin_ok", "1"); onUnlock(); }
+    else setErr(true);
+  }
+  return (
+    <div style={{ fontFamily: "'DM Mono', monospace", background: "#0A0A0A", minHeight: "100vh", color: "#E8E8E0",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div style={{ maxWidth: 320, width: "100%" }}>
+        <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 2, color: "#fff", marginBottom: 18, textAlign: "center" }}>ADMIN ACCESS</h1>
+        <input className="gym" type="password" placeholder="passcode" value={value}
+          onChange={(e) => { setValue(e.target.value); setErr(false); }}
+          onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+          style={{ marginBottom: 12, fontSize: 14, padding: "11px 10px" }} autoFocus />
+        <button onClick={submit}
+          style={{ width: "100%", padding: "12px", borderRadius: 6, border: "none",
+            background: "#E8E8E0", color: "#000", fontSize: 12, letterSpacing: 1.5, fontWeight: 600 }}>
+          UNLOCK
+        </button>
+        {err && <div style={{ marginTop: 10, fontSize: 11, color: "#FF6B6B", textAlign: "center" }}>Wrong passcode.</div>}
+      </div>
+    </div>
+  );
+}
+
+function ItemEditor({ item, onChange, onRemove, onMove, isFirst, isLast }) {
+  return (
+    <div style={{ background: "#0D0D0D", border: "1px solid #222", borderRadius: 6, padding: 10, marginBottom: 8 }}>
+      <div style={{ display: "flex", gap: 6, marginBottom: 8, alignItems: "center" }}>
+        <input className="gym" value={item.label} placeholder="Exercise label" onChange={(e) => onChange({ label: e.target.value })} style={{ flex: 1 }} />
+        <button onClick={() => onMove(-1)} disabled={isFirst} style={{ background: "transparent", border: "1px solid #333", color: "#888", borderRadius: 4, padding: "4px 8px", opacity: isFirst ? 0.3 : 1 }}>↑</button>
+        <button onClick={() => onMove(1)} disabled={isLast} style={{ background: "transparent", border: "1px solid #333", color: "#888", borderRadius: 4, padding: "4px 8px", opacity: isLast ? 0.3 : 1 }}>↓</button>
+        <button onClick={onRemove} style={{ background: "transparent", border: "1px solid #522", color: "#FF6B6B", borderRadius: 4, padding: "4px 8px" }}>✕</button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 6 }}>
+        <input className="gym" value={item.detail || ""} placeholder="Detail (e.g. 3×10-12 · 75s rest)" onChange={(e) => onChange({ detail: e.target.value })} />
+        <div style={{ display: "flex", gap: 6 }}>
+          <input className="gym" type="number" min="1" value={item.sets == null ? "" : item.sets} placeholder="sets"
+            onChange={(e) => onChange({ sets: e.target.value === "" ? undefined : parseInt(e.target.value) })} />
+          <input className="gym" type="number" min="0" value={item.restSeconds == null ? "" : item.restSeconds} placeholder="rest (s)"
+            onChange={(e) => onChange({ restSeconds: e.target.value === "" ? undefined : parseInt(e.target.value) })} />
+        </div>
+      </div>
+      <textarea className="gym" rows={2} value={item.tip || ""} placeholder="Technique tip" onChange={(e) => onChange({ tip: e.target.value })} style={{ marginBottom: 6 }} />
+      <textarea className="gym" rows={2} value={item.coachZ || ""} placeholder="Coach cue (optional)" onChange={(e) => onChange({ coachZ: e.target.value })} style={{ marginBottom: 6 }} />
+      <textarea className="gym" rows={2} value={item.avoid || ""} placeholder="Avoid (optional)" onChange={(e) => onChange({ avoid: e.target.value })} />
+    </div>
+  );
+}
+
+function SectionEditor({ sec, onChange, onRemove, onMove, isFirst, isLast }) {
+  const [open, setOpen] = useState(true);
+  function updateItem(idx, patch) { onChange({ items: arrUpdate(sec.items, idx, patch) }); }
+  function removeItem(idx) { onChange({ items: arrRemove(sec.items, idx) }); }
+  function moveItem(idx, dir) { onChange({ items: arrMove(sec.items, idx, dir) }); }
+  function addItem() { onChange({ items: sec.items.concat([blankItem()]) }); }
+
+  return (
+    <div style={{ background: "#111", border: "1px solid #1E1E1E", borderRadius: 8, padding: 12, marginBottom: 10 }}>
+      <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: open ? 10 : 0 }}>
+        <button onClick={() => setOpen(!open)} style={{ background: "transparent", border: "none", color: "#888", fontSize: 12 }}>{open ? "▲" : "▼"}</button>
+        <input className="gym" value={sec.name} placeholder="Section name" onChange={(e) => onChange({ name: e.target.value })} style={{ flex: 1 }} />
+        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: "#888", whiteSpace: "nowrap" }}>
+          <input type="checkbox" checked={!!sec.isStrength} onChange={(e) => onChange({ isStrength: e.target.checked })} /> STRENGTH
+        </label>
+        <button onClick={() => onMove(-1)} disabled={isFirst} style={{ background: "transparent", border: "1px solid #333", color: "#888", borderRadius: 4, padding: "4px 8px", opacity: isFirst ? 0.3 : 1 }}>↑</button>
+        <button onClick={() => onMove(1)} disabled={isLast} style={{ background: "transparent", border: "1px solid #333", color: "#888", borderRadius: 4, padding: "4px 8px", opacity: isLast ? 0.3 : 1 }}>↓</button>
+        <button onClick={onRemove} style={{ background: "transparent", border: "1px solid #522", color: "#FF6B6B", borderRadius: 4, padding: "4px 8px" }}>✕</button>
+      </div>
+      {open && (
+        <React.Fragment>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 10 }}>
+            <input className="gym" value={sec.badge || ""} placeholder="Badge (e.g. 6 exercises · 32 min)" onChange={(e) => onChange({ badge: e.target.value })} />
+            <input className="gym" value={sec.note || ""} placeholder="Note" onChange={(e) => onChange({ note: e.target.value })} />
+          </div>
+          {sec.items.map((it, ii) => (
+            <ItemEditor key={ii} item={it}
+              onChange={(patch) => updateItem(ii, patch)}
+              onRemove={() => removeItem(ii)}
+              onMove={(dir) => moveItem(ii, dir)}
+              isFirst={ii === 0} isLast={ii === sec.items.length - 1} />
+          ))}
+          <button onClick={addItem} style={{ background: "transparent", border: "1px dashed #333", color: "#888", borderRadius: 6, padding: "8px", width: "100%", fontSize: 10, letterSpacing: 1 }}>
+            + ADD EXERCISE
+          </button>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+function DayEditor({ day, onChange, onRemove, onMove, isFirst, isLast }) {
+  const [open, setOpen] = useState(false);
+  function updateSection(idx, patch) { onChange({ sections: arrUpdate(day.sections, idx, patch) }); }
+  function removeSection(idx) { onChange({ sections: arrRemove(day.sections, idx) }); }
+  function moveSection(idx, dir) { onChange({ sections: arrMove(day.sections, idx, dir) }); }
+  function addSection() { onChange({ sections: day.sections.concat([blankSection()]) }); }
+
+  return (
+    <div style={{ background: "#0D0D0D", border: "1px solid " + day.color + "44", borderRadius: 8, padding: 12, marginBottom: 12 }}>
+      <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: open ? 12 : 0 }}>
+        <button onClick={() => setOpen(!open)} style={{ background: "transparent", border: "none", color: day.color, fontSize: 12 }}>{open ? "▲" : "▼"}</button>
+        <span style={{ fontSize: 18 }}>{day.icon}</span>
+        <input className="gym" value={day.label} placeholder="MON" onChange={(e) => onChange({ label: e.target.value })} style={{ width: 70 }} />
+        <input className="gym" value={day.title} placeholder="Day title" onChange={(e) => onChange({ title: e.target.value })} style={{ flex: 1 }} />
+        <input type="color" value={/^#[0-9A-Fa-f]{6}$/.test(day.color) ? day.color : "#888888"} onChange={(e) => onChange({ color: e.target.value })} style={{ width: 32, height: 32, border: "none", background: "none", padding: 0 }} />
+        <button onClick={() => onMove(-1)} disabled={isFirst} style={{ background: "transparent", border: "1px solid #333", color: "#888", borderRadius: 4, padding: "4px 8px", opacity: isFirst ? 0.3 : 1 }}>↑</button>
+        <button onClick={() => onMove(1)} disabled={isLast} style={{ background: "transparent", border: "1px solid #333", color: "#888", borderRadius: 4, padding: "4px 8px", opacity: isLast ? 0.3 : 1 }}>↓</button>
+        <button onClick={onRemove} style={{ background: "transparent", border: "1px solid #522", color: "#FF6B6B", borderRadius: 4, padding: "4px 8px" }}>✕</button>
+      </div>
+      {open && (
+        <React.Fragment>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 12 }}>
+            <input className="gym" value={day.subtitle || ""} placeholder="Subtitle" onChange={(e) => onChange({ subtitle: e.target.value })} />
+            <input className="gym" value={day.icon || ""} placeholder="Icon (emoji)" onChange={(e) => onChange({ icon: e.target.value })} />
+            <input className="gym" value={day.burn || ""} placeholder="Est. burn (e.g. ~520 kcal)" onChange={(e) => onChange({ burn: e.target.value })} />
+          </div>
+          {day.sections.map((sec, si) => (
+            <SectionEditor key={si} sec={sec}
+              onChange={(patch) => updateSection(si, patch)}
+              onRemove={() => removeSection(si)}
+              onMove={(dir) => moveSection(si, dir)}
+              isFirst={si === 0} isLast={si === day.sections.length - 1} />
+          ))}
+          <button onClick={addSection} style={{ background: "transparent", border: "1px dashed #333", color: "#888", borderRadius: 6, padding: "8px", width: "100%", fontSize: 10, letterSpacing: 1 }}>
+            + ADD SECTION
+          </button>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+function PlanEditor({ user, onSaved }) {
+  const [plan, setPlan] = useState(() => deepClone(user.plan || window.DEFAULT_PLAN));
+  const [jsonText, setJsonText] = useState(() => JSON.stringify(user.plan || window.DEFAULT_PLAN, null, 2));
+  const [jsonErr, setJsonErr] = useState("");
+  const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
+
+  useEffect(() => {
+    setPlan(deepClone(user.plan || window.DEFAULT_PLAN));
+    setJsonText(JSON.stringify(user.plan || window.DEFAULT_PLAN, null, 2));
+    setJsonErr("");
+    setSaveStatus("idle");
+  }, [user.slug]);
+
+  const branding = plan.branding || {};
+  function updateBranding(patch) { setPlan((p) => Object.assign({}, p, { branding: Object.assign({}, p.branding, patch) })); }
+  function updateDay(idx, patch) { setPlan((p) => Object.assign({}, p, { days: arrUpdate(p.days, idx, patch) })); }
+  function removeDay(idx) { setPlan((p) => Object.assign({}, p, { days: arrRemove(p.days, idx) })); }
+  function moveDay(idx, dir) { setPlan((p) => Object.assign({}, p, { days: arrMove(p.days, idx, dir) })); }
+  function addDay() { setPlan((p) => Object.assign({}, p, { days: p.days.concat([blankDay()]) })); }
+
+  function loadJsonIntoEditor() {
+    try {
+      const parsed = JSON.parse(jsonText);
+      if (!parsed || !Array.isArray(parsed.days)) throw new Error("Plan must have a 'days' array.");
+      setPlan(parsed);
+      setJsonErr("");
+    } catch (e) { setJsonErr(e.message); }
+  }
+  function syncJsonFromEditor() { setJsonText(JSON.stringify(plan, null, 2)); setJsonErr(""); }
+
+  function save() {
+    setSaveStatus("saving");
+    authReady.then(() => db.collection("users").doc(user.slug).set({ plan }, { merge: true }))
+      .then(() => { setSaveStatus("saved"); setJsonText(JSON.stringify(plan, null, 2)); onSaved && onSaved(plan); setTimeout(() => setSaveStatus("idle"), 1500); })
+      .catch((e) => { console.error(e); setSaveStatus("error"); });
+  }
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: 2, color: "#fff" }}>
+          {user.username} <span style={{ fontSize: 12, color: "#555" }}>· {user.slug}</span>
+        </h2>
+        <button onClick={save} disabled={saveStatus === "saving"}
+          style={{ padding: "9px 16px", borderRadius: 6, border: "none", cursor: "pointer",
+            background: saveStatus === "error" ? "#FF6B6B" : "#00E87A", color: "#000", fontSize: 11, letterSpacing: 1.5, fontWeight: 600 }}>
+          {saveStatus === "saving" ? "SAVING…" : saveStatus === "saved" ? "✓ SAVED" : saveStatus === "error" ? "ERROR — RETRY" : "SAVE PLAN"}
+        </button>
+      </div>
+
+      <div style={{ fontSize: 10, letterSpacing: 3, color: "#444", marginBottom: 8 }}>BRANDING</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
+        <div><label className="fld">App title</label><input className="gym" value={branding.title || ""} onChange={(e) => updateBranding({ title: e.target.value })} /></div>
+        <div><label className="fld">Gym / header label</label><input className="gym" value={branding.gymLabel || ""} onChange={(e) => updateBranding({ gymLabel: e.target.value })} /></div>
+        <div><label className="fld">Stats line</label><input className="gym" value={branding.statsLine || ""} onChange={(e) => updateBranding({ statsLine: e.target.value })} /></div>
+        <div>
+          <label className="fld">Accent color</label>
+          <div style={{ display: "flex", gap: 6 }}>
+            <input type="color" value={/^#[0-9A-Fa-f]{6}$/.test(branding.accentColor) ? branding.accentColor : "#B388FF"}
+              onChange={(e) => updateBranding({ accentColor: e.target.value })} style={{ width: 40, height: 32, border: "none", background: "none", padding: 0 }} />
+            <input className="gym" value={branding.accentColor || ""} onChange={(e) => updateBranding({ accentColor: e.target.value })} style={{ flex: 1 }} />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ fontSize: 10, letterSpacing: 3, color: "#444", marginBottom: 8 }}>DAYS</div>
+      {plan.days.map((d, di) => (
+        <DayEditor key={d.id || di} day={d}
+          onChange={(patch) => updateDay(di, patch)}
+          onRemove={() => removeDay(di)}
+          onMove={(dir) => moveDay(di, dir)}
+          isFirst={di === 0} isLast={di === plan.days.length - 1} />
+      ))}
+      <button onClick={addDay} style={{ background: "transparent", border: "1px dashed #333", color: "#888", borderRadius: 6, padding: "10px", width: "100%", fontSize: 10, letterSpacing: 1, marginBottom: 28 }}>
+        + ADD DAY
+      </button>
+
+      <div style={{ fontSize: 10, letterSpacing: 3, color: "#444", marginBottom: 8 }}>JSON (power-user escape hatch)</div>
+      <textarea className="gym" rows={10} value={jsonText} onChange={(e) => setJsonText(e.target.value)}
+        style={{ fontSize: 11, marginBottom: 8 }} />
+      <div style={{ display: "flex", gap: 8, marginBottom: jsonErr ? 8 : 0 }}>
+        <button onClick={loadJsonIntoEditor} style={{ background: "#1A1A1A", border: "1px solid #333", color: "#CCC", borderRadius: 6, padding: "8px 12px", fontSize: 10, letterSpacing: 1 }}>
+          ↑ LOAD JSON INTO EDITOR
+        </button>
+        <button onClick={syncJsonFromEditor} style={{ background: "#1A1A1A", border: "1px solid #333", color: "#CCC", borderRadius: 6, padding: "8px 12px", fontSize: 10, letterSpacing: 1 }}>
+          ↓ SYNC JSON FROM EDITOR
+        </button>
+      </div>
+      {jsonErr && <div style={{ fontSize: 11, color: "#FF6B6B" }}>Invalid JSON: {jsonErr}</div>}
+    </div>
+  );
+}
+
+function AdminApp() {
+  const [users, setUsers] = useState(null); // null = loading
+  const [selectedSlug, setSelectedSlug] = useState(null);
+  const [newUsername, setNewUsername] = useState("");
+  const [createErr, setCreateErr] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    if (!db) return;
+    let unsub = null;
+    authReady.then(() => {
+      unsub = db.collection("users").orderBy("username").onSnapshot((snap) => {
+        setUsers(snap.docs.map((d) => Object.assign({ slug: d.id }, d.data())));
+      }, (e) => { console.error(e); setUsers([]); });
+    });
+    return () => { if (unsub) unsub(); };
+  }, []);
+
+  function createUser() {
+    const name = newUsername.trim();
+    if (!name) return;
+    const slug = window.slugifyUsername(name);
+    if (!slug) { setCreateErr("Enter a valid username."); return; }
+    setCreating(true);
+    setCreateErr("");
+    authReady.then(() => db.collection("users").doc(slug).get())
+      .then((snap) => {
+        if (snap.exists) { setCreateErr("That username already exists."); setCreating(false); return; }
+        return db.collection("users").doc(slug).set({
+          username: name, slug, createdAt: Date.now(), plan: deepClone(window.DEFAULT_PLAN),
+        }).then(() => { setNewUsername(""); setSelectedSlug(slug); setCreating(false); });
+      })
+      .catch((e) => { console.error(e); setCreateErr("Couldn't reach the server — try again."); setCreating(false); });
+  }
+
+  function deleteUser(slug) {
+    if (!window.confirm("Delete user \"" + slug + "\"? This removes their plan (not their training-data sync docs).")) return;
+    db.collection("users").doc(slug).delete().catch((e) => console.error(e));
+    if (selectedSlug === slug) setSelectedSlug(null);
+  }
+
+  const selectedUser = users && users.find((u) => u.slug === selectedSlug);
+
+  return (
+    <div style={{ fontFamily: "'DM Mono', monospace", background: "#0A0A0A", minHeight: "100vh", color: "#E8E8E0", paddingBottom: 60 }}>
+      <div style={{ background: "#111", borderBottom: "1px solid #222", padding: "20px 24px" }}>
+        <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 3, color: "#fff" }}>ADMIN</h1>
+        <div style={{ fontSize: 10, color: "#555", marginTop: 4, letterSpacing: 1 }}>Create users and edit their workout plans.</div>
+      </div>
+
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 20px", display: "grid", gridTemplateColumns: "280px 1fr", gap: 24, alignItems: "start" }}>
+        <div>
+          <div style={{ fontSize: 10, letterSpacing: 3, color: "#444", marginBottom: 8 }}>CREATE USER</div>
+          <input className="gym" placeholder="username" value={newUsername}
+            onChange={(e) => { setNewUsername(e.target.value); setCreateErr(""); }}
+            onKeyDown={(e) => { if (e.key === "Enter") createUser(); }}
+            style={{ marginBottom: 8 }} />
+          <button onClick={createUser} disabled={creating}
+            style={{ width: "100%", padding: "10px", borderRadius: 6, border: "none", cursor: "pointer",
+              background: "#E8E8E0", color: "#000", fontSize: 11, letterSpacing: 1.5, fontWeight: 600, marginBottom: 6 }}>
+            {creating ? "CREATING…" : "+ CREATE"}
+          </button>
+          {createErr && <div style={{ fontSize: 10, color: "#FF6B6B", marginBottom: 10 }}>{createErr}</div>}
+
+          <div style={{ fontSize: 10, letterSpacing: 3, color: "#444", margin: "20px 0 8px" }}>USERS</div>
+          {users === null && <div style={{ fontSize: 11, color: "#555" }}>Loading…</div>}
+          {users && users.length === 0 && <div style={{ fontSize: 11, color: "#555" }}>No users yet.</div>}
+          {users && users.map((u) => (
+            <div key={u.slug} onClick={() => setSelectedSlug(u.slug)}
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", borderRadius: 6, marginBottom: 6, cursor: "pointer",
+                background: selectedSlug === u.slug ? "#1A1A1A" : "#111", border: "1px solid " + (selectedSlug === u.slug ? "#444" : "#1E1E1E") }}>
+              <span style={{ fontSize: 12, color: selectedSlug === u.slug ? "#fff" : "#AAA" }}>{u.username}</span>
+              <button onClick={(e) => { e.stopPropagation(); deleteUser(u.slug); }}
+                style={{ background: "transparent", border: "none", color: "#666", fontSize: 12 }}>✕</button>
+            </div>
+          ))}
+        </div>
+
+        <div>
+          {!db && <div style={{ fontSize: 12, color: "#FF6B6B" }}>Cloud sync not configured — admin requires Firestore.</div>}
+          {db && !selectedUser && <div style={{ fontSize: 12, color: "#555" }}>Select a user on the left to edit their plan, or create a new one.</div>}
+          {selectedUser && <PlanEditor key={selectedUser.slug} user={selectedUser} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("cz_admin_ok") === "1");
+  if (!unlocked) return <PasscodeGate onUnlock={() => setUnlocked(true)} />;
+  return <AdminApp />;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+<script>
+  var src = document.getElementById("app-source").textContent;
+  var code = Babel.transform(src, { presets: [["react", { runtime: "classic" }]] }).code;
+  (0, eval)(code);
+</script>
+</body>
+</html>

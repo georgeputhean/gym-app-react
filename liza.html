@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 <meta name="theme-color" content="#0A0A0A" />
-<title>Training App</title>
+<title>Liza Training App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet" />
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -15,7 +15,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="plan-template.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { background:#0A0A0A; }
@@ -38,8 +37,223 @@
 <script type="text/jsx-manual" id="app-source">
 const { useState, useEffect, useRef } = React;
 
-// Plan content (days, dailyLayer, principles, weekMap, branding) now lives in plan-template.js
-// as window.DEFAULT_PLAN, loaded via <script> above so index.html has zero hardcoded content.
+// ─── LIZA TRAINING PROGRAM ───
+// 5-day split (Lower / Upper / Full / Lower / Upper), logged from her program sheet
+
+const CZ = "#FF6FA5"; // accent color
+
+const days = [
+  {
+    id: "d1",
+    label: "DAY 1",
+    title: "Lower",
+    subtitle: "Quads · Hamstrings · Glutes",
+    color: "#00E87A",
+    icon: "🦵",
+    sections: [
+      {
+        name: "STRENGTH",
+        badge: "4 exercises",
+        note: "Log weight × reps every set. When all sets hit the top of the rep range with clean form, add weight next session.",
+        items: [
+          {
+            label: "1. Goblet Squats",
+            detail: "3×6–10 · last: 35lb × 10 (was 27.5 → 30 → 35)",
+            tip: "Hold the dumbbell vertically at chest height, elbows tucked. Squat to full depth, knees tracking over toes.",
+          },
+          {
+            label: "2. RDLs",
+            detail: "3×6–10 · last: 35lb × 6 (was 25 → 30 → 35)",
+            tip: "Soft knees, hinge at the hips, bar/dumbbells stay close to the legs. Feel the stretch in the hamstrings, not the lower back.",
+          },
+          {
+            label: "3. Leg Extensions",
+            detail: "4×10–20 · last: 70lb × 8 (was 45 → 60 → 70)",
+            tip: "Squeeze the quads hard at the top for a full second, control the negative.",
+          },
+          {
+            label: "4. Hip Abduction Machine",
+            detail: "4×10–20 · last: 80lb × 15",
+            tip: "Lean slightly forward, drive the knees outward against the pads, pause at full range.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "d2",
+    label: "DAY 2",
+    title: "Upper",
+    subtitle: "Shoulders · Chest · Triceps",
+    color: "#00C2FF",
+    icon: "💪",
+    sections: [
+      {
+        name: "STRENGTH",
+        badge: "4 exercises",
+        note: "Log weight × reps every set. When all sets hit the top of the rep range with clean form, add weight next session.",
+        items: [
+          {
+            label: "1. Standing Shoulder Press",
+            detail: "3×6–10 · last: 15lb × 8 (was 12.5 → 12.5 → 15)",
+            tip: "Brace the core, press straight overhead without arching the lower back.",
+          },
+          {
+            label: "2. Pec Dec Chest",
+            detail: "4×10–20 · last: 30lb × 10",
+            tip: "Slight bend in the elbows, squeeze the chest together at the front, control the return.",
+          },
+          {
+            label: "3. EZ Bar Skullcrushers",
+            detail: "3×8–15 · last: 8lb × 8",
+            tip: "Elbows pointed forward and stationary, lower the bar to the forehead, extend fully at the top.",
+          },
+          {
+            label: "4. Dumbbell Lateral Raise",
+            detail: "4×10–20 · last: 10lb × 8–11",
+            tip: "Slight elbow bend, raise to shoulder height, lead with the elbows not the hands.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "d3",
+    label: "DAY 3",
+    title: "Full Body",
+    subtitle: "Legs · Chest · Back",
+    color: "#FFB800",
+    icon: "🔁",
+    sections: [
+      {
+        name: "STRENGTH",
+        badge: "5 exercises",
+        note: "Log weight × reps every set. When all sets hit the top of the rep range with clean form, add weight next session.",
+        items: [
+          {
+            label: "1. Lying Leg Press",
+            detail: "3×8–15 · last: (65+65)lb × 10",
+            tip: "Feet mid-platform shoulder-width, lower until knees hit ~90°, don't let the lower back round off the pad.",
+          },
+          {
+            label: "2. Deficit Reverse Lunge",
+            detail: "3×8–15 · bodyweight",
+            tip: "Stand on a small step/plate, step back into the lunge for extra range, front knee tracks over the foot.",
+          },
+          {
+            label: "3. Incline Chest Press",
+            detail: "3×8–15 · last: 15lb × 10",
+            tip: "Press up and slightly back, control the negative, avoid locking the elbows out hard.",
+          },
+          {
+            label: "4. Cable Row",
+            detail: "3×8–15 · last: 55lb × 12",
+            tip: "Chest up, pull to the lower ribs, squeeze the shoulder blades together at the finish.",
+          },
+          {
+            label: "5. Back Extensions",
+            detail: "3×10–20 · bodyweight",
+            tip: "Hinge from the hips, squeeze the glutes and lower back at the top, don't hyperextend.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "d4",
+    label: "DAY 4",
+    title: "Lower",
+    subtitle: "Glutes · Adductors · Hamstrings",
+    color: "#FF4D1C",
+    icon: "🦵",
+    sections: [
+      {
+        name: "STRENGTH",
+        badge: "4 exercises",
+        note: "Log weight × reps every set. When all sets hit the top of the rep range with clean form, add weight next session.",
+        items: [
+          {
+            label: "1. Sumo Squats",
+            detail: "3×6–10 · last: 50lb × 10 (was 40 → 45 → 50)",
+            tip: "Wide stance, toes turned out, sit straight down between the legs keeping the torso upright.",
+          },
+          {
+            label: "2. Hip Thrust",
+            detail: "3×6–10 · last: (70+70)lb × 10",
+            tip: "Shoulder blades on the bench, drive through the heels, squeeze glutes hard at lockout without overarching.",
+          },
+          {
+            label: "3. Hip Adduction Machine",
+            detail: "4×10–20 · last: 90lb × 15",
+            tip: "Controlled squeeze inward, pause briefly at the inner range.",
+          },
+          {
+            label: "4. Hamstring Curl Machine",
+            detail: "3×10–20 · last: 50lb × 12",
+            tip: "Full stretch at the start, curl all the way, control the release rather than letting the weight drop.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "d5",
+    label: "DAY 5",
+    title: "Upper",
+    subtitle: "Back · Shoulders · Biceps",
+    color: "#C84BFF",
+    icon: "💪",
+    sections: [
+      {
+        name: "STRENGTH",
+        badge: "4 exercises",
+        note: "Log weight × reps every set. When all sets hit the top of the rep range with clean form, add weight next session.",
+        items: [
+          {
+            label: "1. Lat Pulldown",
+            detail: "3×6–10 · last: 66lb × 6–8 (was 55 → 66 → 66)",
+            tip: "Pull to the upper chest, lead with the elbows, avoid leaning back excessively.",
+          },
+          {
+            label: "2. Face Pulls",
+            detail: "4×8–15 · last: 33lb × 8 (was 20 → 23 → 30 → 33)",
+            tip: "Pull to eye level, elbows high, squeeze the rear delts and upper back at the finish.",
+          },
+          {
+            label: "3. Cable Bicep Curls",
+            detail: "4×8–15 · last: 22lb × 8",
+            tip: "Elbows pinned at the sides, full stretch at the bottom, squeeze at the top without swinging.",
+          },
+          {
+            label: "4. Dumbbell Front Raises",
+            detail: "3×10–20 · last: 8lb × 10–12",
+            tip: "Raise to shoulder height with a slight bend in the elbow, control the descent.",
+          },
+        ],
+      },
+    ],
+  },
+];
+
+
+// ─────────────────────────────────────────────
+// APP LAYER (standalone): logging · timers · trackers
+// Saves to browser localStorage (on-device, survives between sessions)
+// ─────────────────────────────────────────────
+
+function strengthItems(day) {
+  const out = [];
+  day.sections.forEach((sec) => {
+    if (sec.name.includes("STRENGTH") || sec.name.includes("CIRCUIT")) {
+      sec.items.forEach((it, idx) => {
+        const setsMatch = it.detail && it.detail.match(/^(\d+)×/);
+        const sets = setsMatch ? parseInt(setsMatch[1], 10) : 3;
+        out.push({ id: day.id + "-" + sec.name.slice(0,4) + "-" + idx, label: it.label, sets });
+      });
+    }
+  });
+  return out;
+}
 function todayKey() { return new Date().toISOString().slice(0, 10); }
 
 function loadLS(key, fallback) {
@@ -125,57 +339,35 @@ function RestTimer({ seconds, color, onClose, onGo }) {
   );
 }
 
-function itemSets(item) {
-  if (typeof item.sets === "number") return item.sets;
-  return item.detail && item.detail.startsWith("2×") ? 2 : 3;
-}
-function itemRest(item) {
-  if (typeof item.restSeconds === "number") return item.restSeconds;
-  const m = item.detail && item.detail.match(/(\d+)s rest/);
-  return m ? parseInt(m[1]) : 60;
-}
-function isStrengthSection(sec) {
-  if (typeof sec.isStrength === "boolean") return sec.isStrength;
-  return sec.name.includes("STRENGTH") || sec.name.includes("CIRCUIT");
-}
-
-function WorkoutApp({ username, plan, onSignOut }) {
-  const days = plan.days;
-  const weekMap = plan.weekMap || [];
-  const dailyLayer = plan.dailyLayer || [];
-  const coachZPrinciples = plan.principles || [];
-  const branding = plan.branding || {};
-  const CZ = branding.accentColor || "#B388FF";
-  const nsKey = (k) => k + "__" + username;
-
-  const [activeDay, setActiveDay] = useState((days[0] && days[0].id) || "mon");
+function WorkoutApp() {
+  const [activeDay, setActiveDay] = useState("mon");
   const [expandedEx, setExpandedEx] = useState(null);
   const [view, setView] = useState("workouts");
 
-  const [log, setLog] = useState(() => loadLS(nsKey("cz_log"), {}));
-  const [exMode, setExMode] = useState(() => loadLS(nsKey("cz_exmode"), {}));
+  const [log, setLog] = useState(() => loadLS("liza_log", {}));
+  const [exMode, setExMode] = useState(() => loadLS("liza_exmode", {}));
   const [timer, setTimer] = useState(null);
   const [nextTarget, setNextTarget] = useState(null);
   const [expandedSets, setExpandedSets] = useState({});
-  const [sectionsDone, setSectionsDone] = useState(() => loadLS(nsKey("cz_sections"), {}));
+  const [sectionsDone, setSectionsDone] = useState(() => loadLS("liza_sections", {}));
   const [expandedSecs, setExpandedSecs] = useState({});
-  const [daily, setDaily] = useState(() => loadLS(nsKey("cz_daily"), {}));
+  const [daily, setDaily] = useState(() => loadLS("liza_daily", {}));
 
   const [syncStatus, setSyncStatus] = useState(syncDb ? "connecting" : "unavailable");
   const applyingRemoteRef = useRef(false);
   const hasSyncedOnceRef = useRef(false);
   const unsubRef = useRef(null);
 
-  const day = days.find((d) => d.id === activeDay) || days[0];
+  const day = days.find((d) => d.id === activeDay);
   const dk = todayKey();
-  const syncCode = username + "-" + dk; // per-user, rotates automatically at midnight
+  const syncCode = "liza-" + dk; // rotates automatically at midnight — no code to type or remember
   const totalBurn = weekMap.reduce((s, d) => s + d.burn, 0);
-  const maxBurn = weekMap.length ? Math.max.apply(null, weekMap.map((d) => d.burn)) : 1;
+  const maxBurn = Math.max.apply(null, weekMap.map((d) => d.burn));
 
-  useEffect(() => { saveLS(nsKey("cz_log"), log); }, [log]);
-  useEffect(() => { saveLS(nsKey("cz_exmode"), exMode); }, [exMode]);
-  useEffect(() => { saveLS(nsKey("cz_daily"), daily); }, [daily]);
-  useEffect(() => { saveLS(nsKey("cz_sections"), sectionsDone); }, [sectionsDone]);
+  useEffect(() => { saveLS("liza_log", log); }, [log]);
+  useEffect(() => { saveLS("liza_exmode", exMode); }, [exMode]);
+  useEffect(() => { saveLS("liza_daily", daily); }, [daily]);
+  useEffect(() => { saveLS("liza_sections", sectionsDone); }, [sectionsDone]);
 
   // Subscribe to today's cloud doc. Re-runs automatically when the date (and so syncCode) rolls over.
   useEffect(() => {
@@ -190,13 +382,13 @@ function WorkoutApp({ username, plan, onSignOut }) {
         const data = snap.data();
         if (data) {
           applyingRemoteRef.current = true;
-          if (data.cz_log) setLog(data.cz_log);
-          if (data.cz_daily) setDaily(data.cz_daily);
-          if (data.cz_sections) setSectionsDone(data.cz_sections);
-          if (data.cz_exmode) setExMode(data.cz_exmode);
+          if (data.liza_log) setLog(data.liza_log);
+          if (data.liza_daily) setDaily(data.liza_daily);
+          if (data.liza_sections) setSectionsDone(data.liza_sections);
+          if (data.liza_exmode) setExMode(data.liza_exmode);
         } else if (!hasSyncedOnceRef.current) {
           // First device to open the app today — seed today's doc from this device's full local history.
-          ref.set({ cz_log: log, cz_daily: daily, cz_sections: sectionsDone, cz_exmode: exMode, updatedAt: Date.now() });
+          ref.set({ liza_log: log, liza_daily: daily, liza_sections: sectionsDone, liza_exmode: exMode, updatedAt: Date.now() });
         }
         hasSyncedOnceRef.current = true;
         setSyncStatus("synced");
@@ -212,7 +404,7 @@ function WorkoutApp({ username, plan, onSignOut }) {
     const t = setTimeout(() => {
       syncAuthReady.then(() => {
         syncDb.collection("gymAppSync").doc(syncCode).set({
-          cz_log: log, cz_daily: daily, cz_sections: sectionsDone, cz_exmode: exMode, updatedAt: Date.now(),
+          liza_log: log, liza_daily: daily, liza_sections: sectionsDone, liza_exmode: exMode, updatedAt: Date.now(),
         }).catch((e) => { console.error(e); setSyncStatus("error"); });
       });
     }, 800);
@@ -251,10 +443,12 @@ function WorkoutApp({ username, plan, onSignOut }) {
 
   const strengthOrder = [];
   day.sections.forEach((sec) => {
-    if (isStrengthSection(sec)) {
+    if (sec.name.includes("STRENGTH") || sec.name.includes("CIRCUIT")) {
       sec.items.forEach((item, ii) => {
         const exId = day.id + "-" + sec.name.slice(0,4) + "-" + ii;
-        strengthOrder.push({ exId, nSets: itemSets(item) });
+        const nSetsMatch = item.detail && item.detail.match(/^(\d+)×/);
+        const nSets = nSetsMatch ? parseInt(nSetsMatch[1], 10) : 3;
+        strengthOrder.push({ exId, nSets });
       });
     }
   });
@@ -307,12 +501,12 @@ function WorkoutApp({ username, plan, onSignOut }) {
 
       <div style={{ background: "#111", borderBottom: "1px solid #222", padding: "22px 24px 16px" }}>
         <div style={{ maxWidth: 700, margin: "0 auto" }}>
-          <div style={{ fontSize: 10, letterSpacing: 4, color: "#555", marginBottom: 6 }}>{branding.gymLabel || "TRAINING APP"}</div>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: "#555", marginBottom: 6 }}>CRUNCH HUNTINGDON VALLEY · FAT LOSS × COACH Z</div>
           <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 32, letterSpacing: 3, lineHeight: 1, color: "#fff" }}>
-            {branding.title || "TRAINING APP"} <span style={{ color: CZ }}>🅩</span>
+            TRAINING APP <span style={{ color: CZ }}>🅩</span>
           </h1>
           <div style={{ fontSize: 10, color: "#555", marginTop: 6, letterSpacing: 1.5 }}>
-            {branding.statsLine ? branding.statsLine + " · " : ""}{new Date().toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})}
+            78KG · BENCH ~90 · SQUAT ~114 · {new Date().toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12, paddingTop: 12, borderTop: "1px solid #1E1E1E" }}>
             <span style={{ fontSize: 9, letterSpacing: 1.5, color: "#555", display: "flex", alignItems: "center", gap: 4 }}>
@@ -323,22 +517,13 @@ function WorkoutApp({ username, plan, onSignOut }) {
               {syncStatus === "unavailable" && <span style={{ color: "#444" }} title="Cloud sync not configured">✕</span>}
             </span>
             {syncDb && <span style={{ fontSize: 9, color: "#444" }}>· auto, no code needed</span>}
-            <span style={{ flex: 1 }} />
-            <span style={{ fontSize: 9, letterSpacing: 1.5, color: "#666" }}>{username}</span>
-            <button onClick={onSignOut}
-              style={{ fontSize: 9, letterSpacing: 1, padding: "5px 10px", borderRadius: 5, border: "1px solid #333",
-                background: "transparent", color: "#666", cursor: "pointer", fontFamily: "'DM Mono',monospace" }}>
-              SWITCH USER
-            </button>
           </div>
         </div>
       </div>
 
       <div style={{ background: "#0D0D0D", padding: "10px 24px", borderBottom: "1px solid #1A1A1A", position: "sticky", top: 0, zIndex: 20 }}>
         <div style={{ maxWidth: 700, margin: "0 auto", display: "flex", gap: 6 }}>
-          {[["workouts", "💪 TRAIN"], ["daily", "📊 DAILY"], ["system", "🔥 BURN MAP"]]
-            .concat(branding.showMethodTab !== false && coachZPrinciples.length ? [["coachz", "🅩 METHOD"]] : [])
-            .map(([v, lbl]) => (
+          {[["workouts", "💪 TRAIN"], ["daily", "📊 DAILY"], ["system", "🔥 BURN MAP"], ["coachz", "🅩 METHOD"]].map(([v, lbl]) => (
             <button key={v} className="view-btn" onClick={() => setView(v)}
               style={{ flex: 1, padding: "13px 4px", borderRadius: 6, fontSize: 9, letterSpacing: 1,
                 background: view === v ? (v === "coachz" ? CZ : "#E8E8E0") : "#1A1A1A",
@@ -381,7 +566,7 @@ function WorkoutApp({ username, plan, onSignOut }) {
             </div>
 
             {day.sections.map((sec, si) => {
-              const isStrength = isStrengthSection(sec);
+              const isStrength = sec.name.includes("STRENGTH") || sec.name.includes("CIRCUIT");
               const sk = secKey(si);
               const secDone = !!sectionsDone[sk];
               const isCurrentSec = si === firstIncompleteSec;
@@ -418,10 +603,12 @@ function WorkoutApp({ username, plan, onSignOut }) {
                       const exId = day.id + "-" + sec.name.slice(0,4) + "-" + ii;
                       const isOpen = expandedEx === key;
                       const hasTip = item.tip || item.avoid || item.coachZ;
-                      const nSets = itemSets(item);
+                      const nSetsMatch = item.detail && item.detail.match(/^(\d+)×/);
+                      const nSets = nSetsMatch ? parseInt(nSetsMatch[1], 10) : 3;
                       const mode = exMode[exId] || "full";
                       const exLog = dayLog[exId];
-                      const rest = itemRest(item);
+                      const restMatch = item.detail && item.detail.match(/(\d+)s rest/);
+                      const rest = restMatch ? parseInt(restMatch[1]) : 60;
                       const allDone = isStrength && exLog && exLog.sets.length === nSets && exLog.sets.every((s) => s.done);
                       const isCurrent = isStrength && !allDone && exId === firstIncompleteExId;
                       const setsOpen = !allDone && isCurrent;
@@ -546,14 +733,14 @@ function WorkoutApp({ username, plan, onSignOut }) {
             <div style={{ fontSize: 10, color: "#666" }}>Auto-saved on this device. Log daily for the trend line.</div>
             <button onClick={() => {
                 const data = {};
-                ["cz_log","cz_daily","cz_sections","cz_exmode"].forEach(k => {
-                  const v = localStorage.getItem(nsKey(k));
+                ["liza_log","liza_daily","liza_sections","liza_exmode"].forEach(k => {
+                  const v = localStorage.getItem(k);
                   if (v) data[k] = JSON.parse(v);
                 });
                 const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
                 const a = document.createElement("a");
                 a.href = URL.createObjectURL(blob);
-                a.download = username + "-data-" + new Date().toISOString().slice(0,10) + ".json";
+                a.download = "liza-data-" + new Date().toISOString().slice(0,10) + ".json";
                 a.click();
                 URL.revokeObjectURL(a.href);
               }}
@@ -696,97 +883,7 @@ function WorkoutApp({ username, plan, onSignOut }) {
   );
 }
 
-function migrateLegacyData(username) {
-  const flagKey = "cz_migrated__" + username;
-  if (localStorage.getItem(flagKey)) return;
-  ["cz_log", "cz_daily", "cz_sections", "cz_exmode"].forEach((k) => {
-    const legacy = localStorage.getItem(k);
-    if (legacy && !localStorage.getItem(k + "__" + username)) {
-      localStorage.setItem(k + "__" + username, legacy);
-    }
-  });
-  localStorage.setItem(flagKey, "1");
-}
-
-function UsernameGate({ onLogin }) {
-  const [value, setValue] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | checking | error
-  const [errorMsg, setErrorMsg] = useState("");
-
-  function submit() {
-    const name = value.trim();
-    if (!name) return;
-    const slug = window.slugifyUsername(name);
-    if (!slug) { setStatus("error"); setErrorMsg("Enter a valid username."); return; }
-    if (!syncDb) { setStatus("error"); setErrorMsg("Cloud sync not configured — can't verify users."); return; }
-    setStatus("checking");
-    syncAuthReady.then(() => syncDb.collection("users").doc(slug).get())
-      .then((snap) => {
-        if (!snap.exists) { setStatus("error"); setErrorMsg("No such user — ask your coach to create one."); return; }
-        const data = snap.data();
-        onLogin(data.username || name, data.plan || window.DEFAULT_PLAN);
-      })
-      .catch((e) => { console.error(e); setStatus("error"); setErrorMsg("Couldn't reach the server — try again."); });
-  }
-
-  return (
-    <div style={{ fontFamily: "'DM Mono', 'Courier New', monospace", background: "#0A0A0A", minHeight: "100vh", color: "#E8E8E0",
-      display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ maxWidth: 340, width: "100%" }}>
-        <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 30, letterSpacing: 2, color: "#fff", marginBottom: 6, textAlign: "center" }}>WHO'S TRAINING?</h1>
-        <div style={{ fontSize: 11, color: "#666", marginBottom: 20, textAlign: "center", lineHeight: 1.6 }}>Enter your username to load your plan and progress.</div>
-        <input className="gym" placeholder="username" value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
-          style={{ marginBottom: 12, fontSize: 15, padding: "12px 10px" }} autoFocus />
-        <button onClick={submit} disabled={status === "checking"}
-          style={{ width: "100%", padding: "13px", borderRadius: 6, border: "none", cursor: status === "checking" ? "default" : "pointer",
-            background: "#E8E8E0", color: "#000", fontSize: 12, letterSpacing: 1.5, fontWeight: 600, fontFamily: "'DM Mono',monospace" }}>
-          {status === "checking" ? "CHECKING…" : "CONTINUE ▶"}
-        </button>
-        {status === "error" && <div style={{ marginTop: 12, fontSize: 11, color: "#FF6B6B", textAlign: "center" }}>{errorMsg}</div>}
-      </div>
-    </div>
-  );
-}
-
-function App() {
-  const [username, setUsername] = useState(() => loadLS("cz_user", null));
-  const [plan, setPlan] = useState(() => loadLS("cz_user_plan", null));
-
-  // Refresh the cached plan from the cloud on load, so admin edits reach an already-logged-in user.
-  useEffect(() => {
-    if (!username || !syncDb) return;
-    const slug = window.slugifyUsername(username);
-    syncAuthReady.then(() => syncDb.collection("users").doc(slug).get())
-      .then((snap) => {
-        if (snap.exists) {
-          const data = snap.data();
-          if (data.plan) { saveLS("cz_user_plan", data.plan); setPlan(data.plan); }
-        }
-      })
-      .catch((e) => console.error(e));
-  }, [username]);
-
-  function handleLogin(name, userPlan) {
-    migrateLegacyData(name);
-    saveLS("cz_user", name);
-    saveLS("cz_user_plan", userPlan);
-    setUsername(name);
-    setPlan(userPlan);
-  }
-  function handleSignOut() {
-    localStorage.removeItem("cz_user");
-    localStorage.removeItem("cz_user_plan");
-    setUsername(null);
-    setPlan(null);
-  }
-
-  if (!username || !plan) return <UsernameGate onLogin={handleLogin} />;
-  return <WorkoutApp key={username} username={username} plan={plan} onSignOut={handleSignOut} />;
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(<WorkoutApp />);
 </script>
 <script>
   var src = document.getElementById("app-source").textContent;
