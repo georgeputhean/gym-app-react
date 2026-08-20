@@ -31,6 +31,7 @@
   @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes growBar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @keyframes nextPulse { 0%,100% { box-shadow: 0 0 0 2px rgba(255,255,255,0.4); } 50% { box-shadow: 0 0 0 5px rgba(255,255,255,0.1); } }
+  @keyframes pbpop { from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.94); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
 </style>
 </head>
 <body>
@@ -98,6 +99,83 @@ function playBell() {
   } catch(e) {}
 }
 
+// Canvas particle fireworks. Purely decorative and pointer-events:none, so it can never
+// swallow a tap on the set below it. Lifetime is owned by the parent; this just draws.
+function Fireworks({ colors }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas || !canvas.getContext) return;
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return; // respect the OS setting — the banner still shows
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    let w = 0, h = 0;
+    function resize() {
+      w = window.innerWidth; h = window.innerHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    const parts = [];
+    function burst(x, y, color) {
+      for (let i = 0; i < 44; i++) {
+        const a = (Math.PI * 2 * i) / 44 + Math.random() * 0.25;
+        const sp = 2.2 + Math.random() * 4.2;
+        parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, color, r: 1.4 + Math.random() * 1.9 });
+      }
+    }
+    burst(w * 0.5, h * 0.34, colors[0]);
+
+    let raf = 0, shots = 1;
+    const t0 = (window.performance && performance.now) ? performance.now() : Date.now();
+    function frame(now) {
+      const el = now - t0;
+      if (shots < 7 && el > shots * 380) {
+        burst(w * (0.18 + Math.random() * 0.64), h * (0.18 + Math.random() * 0.34), colors[shots % colors.length]);
+        shots++;
+      }
+      ctx.clearRect(0, 0, w, h);
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i];
+        p.vy += 0.05; p.vx *= 0.988; p.vy *= 0.988;
+        p.x += p.vx; p.y += p.vy; p.life -= 0.0105;
+        if (p.life <= 0) { parts.splice(i, 1); continue; }
+        ctx.globalAlpha = p.life < 0 ? 0 : p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      if (shots < 7 || parts.length) raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
+  }, []);
+  return <canvas ref={ref} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 9998 }} />;
+}
+
+function PBBanner({ celebration, color }) {
+  const prev = celebration.prev;
+  return (
+    <div style={{ position: "fixed", top: 70, left: "50%", transform: "translateX(-50%)", zIndex: 9999, pointerEvents: "none",
+      background: "#0F0F0F", border: "1px solid #FFB80055", borderRadius: 10, padding: "12px 18px", maxWidth: "92vw",
+      boxShadow: "0 8px 30px rgba(0,0,0,0.6)", textAlign: "center", animation: "pbpop 0.35s ease-out" }}>
+      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: 3, color: "#FFB800", lineHeight: 1 }}>
+        NEW PERSONAL BEST
+      </div>
+      <div style={{ fontSize: 11, color: "#DDD", marginTop: 7, lineHeight: 1.5 }}>{celebration.label}</div>
+      <div style={{ fontSize: 13, color: "#fff", marginTop: 5 }}>
+        {celebration.w !== null ? celebration.w + " × " + celebration.r : celebration.r + " reps"}
+        {prev && <span style={{ fontSize: 10, color: "#666" }}>
+          {"  (was " + (prev.w !== null ? prev.w + " × " + prev.r : prev.r + " reps") + ")"}
+        </span>}
+      </div>
+    </div>
+  );
+}
+
 function RestTimer({ seconds, color, onClose, onGo }) {
   const [left, setLeft] = useState(seconds);
   useEffect(() => {
@@ -146,6 +224,18 @@ function exKeyFromLabel(label) {
   return String(label || "").replace(/^\s*\d+\.\s*/, "").trim().toLowerCase();
 }
 
+// Single source of truth for "is set A better than set B" — used both to build the PB
+// index and to decide whether a just-completed set breaks it. If these ever disagree,
+// the fireworks fire on sets the badge doesn't consider a record.
+function isBetterSet(b, cur) {
+  if (!b) return false;
+  if (!cur) return true;
+  if (b.w !== null && cur.w === null) return true;
+  if (b.w === null && cur.w !== null) return false;
+  if (b.w === null) return b.r > cur.r;
+  return b.w > cur.w || (b.w === cur.w && b.r > cur.r);
+}
+
 // Best completed set within one exercise entry: heaviest weight, ties broken by reps.
 // Bodyweight work (reps logged, no weight) ranks below any weighted set but still counts.
 function bestSetOf(sets) {
@@ -186,6 +276,7 @@ function WorkoutApp({ username, plan, onSignOut }) {
   const [sectionsDone, setSectionsDone] = useState(() => loadLS(nsKey("cz_sections"), {}));
   const [expandedSecs, setExpandedSecs] = useState({});
   const [daily, setDaily] = useState(() => loadLS(nsKey("cz_daily"), {}));
+  const [celebration, setCelebration] = useState(null);
 
   const [syncStatus, setSyncStatus] = useState(syncDb ? "connecting" : "unavailable");
   const applyingRemoteRef = useRef(false);
@@ -340,19 +431,35 @@ function WorkoutApp({ username, plan, onSignOut }) {
         if (!k) return; // logged under a plan layout that no longer exists
         const b = bestSetOf(entries[exId].sets);
         if (!b) return;
-        const cur = out[k];
-        const better = !cur
-          || (b.w !== null && cur.w === null)
-          || (b.w !== null && cur.w !== null && (b.w > cur.w || (b.w === cur.w && b.r > cur.r)))
-          || (b.w === null && cur.w === null && b.r > cur.r);
-        if (better) out[k] = { w: b.w, r: b.r, date };
+        if (isBetterSet(b, out[k])) out[k] = { w: b.w, r: b.r, date };
       });
     });
     return out;
   }, [log, days]);
 
+  // Fire only when a completed set BEATS an existing record. Establishing a first-ever
+  // PB is deliberately silent — otherwise week 1 sets a record on all 28 exercises and
+  // the celebration stops meaning anything. Called before the log state commits, so
+  // bestByExercise here is still the pre-set value we need to compare against.
+  function celebrateIfPB(label, candidateSets) {
+    const key = exKeyFromLabel(label);
+    const prev = bestByExercise[key];
+    if (!prev) return;
+    const best = bestSetOf((candidateSets || []).map((s) => Object.assign({}, s, { done: true })));
+    if (!isBetterSet(best, prev)) return;
+    setCelebration({ label: label.replace(/^\s*\d+\.\s*/, ""), w: best.w, r: best.r, prev });
+  }
+
+  useEffect(() => {
+    if (!celebration) return;
+    const t = setTimeout(() => setCelebration(null), 3400);
+    return () => clearTimeout(t);
+  }, [celebration]);
+
   return (
     <div style={{ fontFamily: "'DM Mono', 'Courier New', monospace", background: "#0A0A0A", minHeight: "100vh", color: "#E8E8E0", paddingBottom: 80 }}>
+      {celebration && <Fireworks colors={["#FFB800", day.color, "#00E87A", CZ, "#00C2FF"]} />}
+      {celebration && <PBBanner celebration={celebration} color={day.color} />}
       {timer && <RestTimer seconds={timer} color={day.color} onClose={() => { setTimer(null); setNextTarget(null); }} onGo={() => {
         setTimer(null);
         if (nextTarget) {
@@ -509,7 +616,7 @@ function WorkoutApp({ username, plan, onSignOut }) {
                             <div style={{ display: "flex", alignItems: "center", gap: 18, flexShrink: 0 }}>
                               {hasTip && !allDone && <div style={{ fontSize: 18, color: isOpen ? day.color : "#444", flexShrink: 0, padding: "4px 6px" }}>{isOpen ? "▲" : "▼"}</div>}
                               {isStrength && (
-                                <button onClick={(e) => { e.stopPropagation(); markAllDone(exId, nSets, allDone); }}
+                                <button onClick={(e) => { e.stopPropagation(); if (!allDone && exLog) celebrateIfPB(item.label, exLog.sets); markAllDone(exId, nSets, allDone); }}
                                   style={{ width: 36, height: 36, borderRadius: "50%", border: "2px solid " + (allDone ? "#00E87A" : "#444"), background: allDone ? "#00E87A" : "transparent",
                                     color: allDone ? "#000" : "#666", fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                                   ✓
@@ -550,7 +657,7 @@ function WorkoutApp({ username, plan, onSignOut }) {
                                         <span style={{ color: "#444" }}>×</span>
                                         <input className="gym" inputMode="numeric" placeholder="reps" value={s.r}
                                           onChange={(e) => updateSet(exId, sIdx, "r", e.target.value, nSets)} style={{ flex: 1 }} />
-                                        <button onClick={() => { updateSet(exId, sIdx, "done", !s.done, nSets); if (!s.done) { setTimer(rest); setNextTarget(getNextTarget(exId, sIdx, nSets)); } else { setNextTarget(null); } }}
+                                        <button onClick={() => { updateSet(exId, sIdx, "done", !s.done, nSets); if (!s.done) { celebrateIfPB(item.label, [s]); setTimer(rest); setNextTarget(getNextTarget(exId, sIdx, nSets)); } else { setNextTarget(null); } }}
                                           style={{ width: 44, height: 44, borderRadius: 8, border: "none", cursor: "pointer", flexShrink: 0,
                                             background: s.done ? "#00E87A" : "#1A1A1A", color: s.done ? "#000" : "#555", fontSize: 18 }}>✓</button>
                                       </div>
@@ -564,7 +671,7 @@ function WorkoutApp({ username, plan, onSignOut }) {
                                     const isNext = nextTarget && nextTarget.exId === exId && nextTarget.setIdx === sIdx;
                                     return (
                                       <button key={sIdx} id={"set-" + exId + "-" + sIdx}
-                                        onClick={() => { updateSet(exId, sIdx, "done", !s.done, nSets); if (!s.done) { setTimer(rest); setNextTarget(getNextTarget(exId, sIdx, nSets)); } else { setNextTarget(null); } }}
+                                        onClick={() => { updateSet(exId, sIdx, "done", !s.done, nSets); if (!s.done) { celebrateIfPB(item.label, [s]); setTimer(rest); setNextTarget(getNextTarget(exId, sIdx, nSets)); } else { setNextTarget(null); } }}
                                         style={{ flex: 1, padding: "16px 10px", borderRadius: 8, border: isNext ? "2px solid " + day.color : "none", cursor: "pointer",
                                           background: s.done ? "#00E87A" : "#1A1A1A", color: s.done ? "#000" : (isNext ? day.color : "#666"), fontSize: 11, letterSpacing: 1,
                                           animation: isNext ? "nextPulse 1.2s ease-in-out infinite" : "none" }}>
