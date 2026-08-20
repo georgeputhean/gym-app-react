@@ -36,7 +36,7 @@
 <body>
 <div id="root"></div>
 <script type="text/jsx-manual" id="app-source">
-const { useState, useEffect, useRef } = React;
+const { useState, useEffect, useRef, useMemo } = React;
 
 // Plan content (days, dailyLayer, principles, weekMap, branding) now lives in plan-template.js
 // as window.DEFAULT_PLAN, loaded via <script> above so index.html has zero hardcoded content.
@@ -137,6 +137,32 @@ function itemRest(item) {
 function isStrengthSection(sec) {
   if (typeof sec.isStrength === "boolean") return sec.isStrength;
   return sec.name.includes("STRENGTH") || sec.name.includes("CIRCUIT");
+}
+
+// Personal bests are keyed by the exercise NAME, not by exId. exId is positional
+// (day + section-prefix + index), so reordering a day or swapping an exercise would
+// otherwise re-point a PB at a different lift. Strips the "1. " ordering prefix.
+function exKeyFromLabel(label) {
+  return String(label || "").replace(/^\s*\d+\.\s*/, "").trim().toLowerCase();
+}
+
+// Best completed set within one exercise entry: heaviest weight, ties broken by reps.
+// Bodyweight work (reps logged, no weight) ranks below any weighted set but still counts.
+function bestSetOf(sets) {
+  let best = null;
+  (sets || []).forEach((s) => {
+    if (!s || !s.done) return;
+    const r = parseInt(s.r, 10);
+    if (!isFinite(r) || r <= 0) return;
+    const wRaw = parseFloat(s.w);
+    const w = isFinite(wRaw) && wRaw > 0 ? wRaw : null;
+    if (!best) { best = { w, r }; return; }
+    if (w !== null && best.w === null) { best = { w, r }; return; }
+    if (w === null && best.w !== null) return;
+    if (w === null) { if (r > best.r) best = { w, r }; return; }
+    if (w > best.w || (w === best.w && r > best.r)) best = { w, r };
+  });
+  return best;
 }
 
 function WorkoutApp({ username, plan, onSignOut }) {
@@ -293,7 +319,37 @@ function WorkoutApp({ username, plan, onSignOut }) {
   const last7 = bwHistory.slice(-7);
   const bw7avg = last7.length ? (last7.reduce((s, x) => s + x.bw, 0) / last7.length).toFixed(1) : null;
 
-  const dailyChecks = ["10,000 steps", "140g protein", "3L water", "7–8h sleep", "Workout done", "Posing/vacuum"];
+  const dailyChecks = ["10,000 steps", "170g protein", "3L water", "7–8h sleep", "Workout done", "Posing/vacuum"];
+
+  // Personal bests across every logged date, rebuilt whenever the log changes.
+  // `log` is the same object that round-trips through Firestore, so a PB set on one
+  // device shows up on the other as soon as today's sync doc lands.
+  const bestByExercise = useMemo(() => {
+    const idToKey = {};
+    days.forEach((d) => (d.sections || []).forEach((sec) => {
+      if (!isStrengthSection(sec)) return;
+      (sec.items || []).forEach((it, ii) => {
+        idToKey[d.id + "-" + sec.name.slice(0, 4) + "-" + ii] = exKeyFromLabel(it.label);
+      });
+    }));
+    const out = {};
+    Object.keys(log).forEach((date) => {
+      const entries = log[date] || {};
+      Object.keys(entries).forEach((exId) => {
+        const k = idToKey[exId];
+        if (!k) return; // logged under a plan layout that no longer exists
+        const b = bestSetOf(entries[exId].sets);
+        if (!b) return;
+        const cur = out[k];
+        const better = !cur
+          || (b.w !== null && cur.w === null)
+          || (b.w !== null && cur.w !== null && (b.w > cur.w || (b.w === cur.w && b.r > cur.r)))
+          || (b.w === null && cur.w === null && b.r > cur.r);
+        if (better) out[k] = { w: b.w, r: b.r, date };
+      });
+    });
+    return out;
+  }, [log, days]);
 
   return (
     <div style={{ fontFamily: "'DM Mono', 'Courier New', monospace", background: "#0A0A0A", minHeight: "100vh", color: "#E8E8E0", paddingBottom: 80 }}>
@@ -422,6 +478,7 @@ function WorkoutApp({ username, plan, onSignOut }) {
                       const mode = exMode[exId] || "full";
                       const exLog = dayLog[exId];
                       const rest = itemRest(item);
+                      const pb = isStrength ? bestByExercise[exKeyFromLabel(item.label)] : null;
                       const allDone = isStrength && exLog && exLog.sets.length === nSets && exLog.sets.every((s) => s.done);
                       const isCurrent = isStrength && !allDone && exId === firstIncompleteExId;
                       const setsOpen = !allDone && isCurrent;
@@ -438,7 +495,13 @@ function WorkoutApp({ username, plan, onSignOut }) {
                                   textDecoration: allDone ? "line-through" : "none", opacity: allDone ? 0.7 : 1 }}>
                                   {item.label}
                                 </span>
-                                {item.coachZ && !allDone && <span style={{ color: CZ, fontSize: 11 }}>🅩</span>}
+                                {isStrength && !allDone && pb && (
+                                  <span title={"Best set logged on " + pb.date}
+                                    style={{ fontSize: 9, letterSpacing: 1, color: "#FFB800", background: "#FFB80014",
+                                      border: "1px solid #FFB80033", padding: "2px 7px", borderRadius: 10, whiteSpace: "nowrap" }}>
+                                    PB {pb.w !== null ? pb.w + " × " + pb.r : pb.r + " reps"}
+                                  </span>
+                                )}
                                 {allDone && <span style={{ fontSize: 9, letterSpacing: 1.5, background: "#00E87A", color: "#000", padding: "2px 7px", borderRadius: 10, fontWeight: 600 }}>✓ DONE</span>}
                               </div>
                               {item.detail && !allDone && <div style={{ fontSize: 10, color: "#555", marginTop: 3, lineHeight: 1.5 }}>{item.detail}</div>}
@@ -565,8 +628,9 @@ function WorkoutApp({ username, plan, onSignOut }) {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
             {[
-              { f: "bw", label: "BODYWEIGHT (kg)", ph: "78.0", mode: "decimal" },
-              { f: "protein", label: "PROTEIN (g) · 140 target", ph: "140", mode: "numeric" },
+              { f: "bw", label: "BODYWEIGHT (kg)", ph: "80.0", mode: "decimal" },
+              { f: "waist", label: "WAIST (cm) · <90 target", ph: "92", mode: "decimal" },
+              { f: "protein", label: "PROTEIN (g) · 170 target", ph: "170", mode: "numeric" },
               { f: "water", label: "WATER (L) · 3 target", ph: "3.0", mode: "decimal" },
               { f: "sleep", label: "SLEEP (h) · 7–8 target", ph: "7.5", mode: "decimal" },
               { f: "steps", label: "STEPS · 10,000 target", ph: "10000", mode: "numeric" },
@@ -659,10 +723,12 @@ function WorkoutApp({ username, plan, onSignOut }) {
           <div style={{ background: "#111", border: "1px solid #222", borderRadius: 8, padding: "16px", display: "flex", gap: 24, flexWrap: "wrap" }}>
             {[
               { label: "WEEKLY TRAINING BURN", val: "~" + totalBurn.toLocaleString() + " kcal" },
-              { label: "FOOD DEFICIT", val: "400–500 kcal/day" },
-              { label: "PROJECTED LOSS", val: "0.5–0.7 kg/wk" },
-              { label: "PROTEIN", val: "140–150g/day" },
-              { label: "STEPS", val: "10,000/day" },
+              { label: "PHASE 1 INTAKE", val: "1,800 kcal/day" },
+              { label: "FOOD DEFICIT", val: "~850 kcal/day" },
+              { label: "PROJECTED LOSS", val: "0.7–0.8 kg/wk" },
+              { label: "PROTEIN", val: "170g/day" },
+              { label: "STEPS", val: "10,000–12,000/day" },
+              { label: "WAIST TARGET", val: "under 90 cm" },
             ].map((stat, i) => (
               <div key={i}>
                 <div style={{ fontSize: 9, letterSpacing: 3, color: "#444", marginBottom: 4 }}>{stat.label}</div>
