@@ -293,7 +293,7 @@ function WorkoutApp({ username, plan, onSignOut }) {
   const last7 = bwHistory.slice(-7);
   const bw7avg = last7.length ? (last7.reduce((s, x) => s + x.bw, 0) / last7.length).toFixed(1) : null;
 
-  const dailyChecks = ["10,000 steps", "140g protein", "3L water", "7–8h sleep", "Workout done", "Posing/vacuum"];
+  const dailyChecks = ["10,000 steps", "170g protein", "3L water", "7–8h sleep", "Workout done", "Posing/vacuum"];
 
   return (
     <div style={{ fontFamily: "'DM Mono', 'Courier New', monospace", background: "#0A0A0A", minHeight: "100vh", color: "#E8E8E0", paddingBottom: 80 }}>
@@ -565,8 +565,9 @@ function WorkoutApp({ username, plan, onSignOut }) {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
             {[
-              { f: "bw", label: "BODYWEIGHT (kg)", ph: "78.0", mode: "decimal" },
-              { f: "protein", label: "PROTEIN (g) · 140 target", ph: "140", mode: "numeric" },
+              { f: "bw", label: "BODYWEIGHT (kg)", ph: "80.0", mode: "decimal" },
+              { f: "waist", label: "WAIST (cm) · <90 target", ph: "92", mode: "decimal" },
+              { f: "protein", label: "PROTEIN (g) · 170 target", ph: "170", mode: "numeric" },
               { f: "water", label: "WATER (L) · 3 target", ph: "3.0", mode: "decimal" },
               { f: "sleep", label: "SLEEP (h) · 7–8 target", ph: "7.5", mode: "decimal" },
               { f: "steps", label: "STEPS · 10,000 target", ph: "10000", mode: "numeric" },
@@ -659,10 +660,12 @@ function WorkoutApp({ username, plan, onSignOut }) {
           <div style={{ background: "#111", border: "1px solid #222", borderRadius: 8, padding: "16px", display: "flex", gap: 24, flexWrap: "wrap" }}>
             {[
               { label: "WEEKLY TRAINING BURN", val: "~" + totalBurn.toLocaleString() + " kcal" },
-              { label: "FOOD DEFICIT", val: "400–500 kcal/day" },
-              { label: "PROJECTED LOSS", val: "0.5–0.7 kg/wk" },
-              { label: "PROTEIN", val: "140–150g/day" },
-              { label: "STEPS", val: "10,000/day" },
+              { label: "PHASE 1 INTAKE", val: "1,800 kcal/day" },
+              { label: "FOOD DEFICIT", val: "~850 kcal/day" },
+              { label: "PROJECTED LOSS", val: "0.7–0.8 kg/wk" },
+              { label: "PROTEIN", val: "170g/day" },
+              { label: "STEPS", val: "10,000–12,000/day" },
+              { label: "WAIST TARGET", val: "under 90 cm" },
             ].map((stat, i) => (
               <div key={i}>
                 <div style={{ fontSize: 9, letterSpacing: 3, color: "#444", marginBottom: 4 }}>{stat.label}</div>
