@@ -40,12 +40,13 @@ const CZ = "#B388FF"; // Coach Z accent
 //
 // Lift selection and SLOT ORDER match the 5-day V-taper build, so logged
 // sets and personal-best badges (which map old logs by day + slot) keep
-// pointing at the same lift. Each day dropped only its last arm/calf
-// finisher — the least relevant move for fat loss.
+// pointing at the same lift. Max 5 main lifts a day: upper days dropped
+// their trailing arm isolation; lower days keep all five slots, with the
+// calf raise at 2 short sets.
 //
 // Session length (computed as sets × (work + rest) + transitions):
 //   Upper ≈ 46 min, +10 min optional extra-burn walk
-//   Lower ≈ 53 min including the HIIT finisher
+//   Lower ≈ 56 min including the HIIT finisher
 // No supersets — straight sets, fixed rest.
 // ─────────────────────────────────────────────────────────────
 
@@ -145,13 +146,13 @@ const days = [
     subtitle: "6:15am · Squat · RDL · Sprint Finisher",
     color: "#00E87A",
     icon: "🦵",
-    burn: "~410 kcal",
+    burn: "~420 kcal",
     cardioType: "Lift + HIIT finisher",
     sections: [
       {
         name: "WARM-UP & JOINT PREP",
         badge: "8 min",
-        note: "~53 min total today. Cold hips and knees under a loaded squat is the fastest route to injury. Rope is short today so it doesn't pre-tire the calves.",
+        note: "~56 min total today. Cold hips and knees under a loaded squat is the fastest route to injury. Rope is short today so it doesn't pre-tire the calves.",
         items: [
           { label: "Skipping Rope Primer", detail: "2 min · easy bounce", tip: "Kept short on leg day. Light two-foot bounce, soft landings — just raising core temp and getting blood into the lower legs." },
           { label: "90/90 Hip Switches + Adductor Rockbacks", detail: "2×8 per side", tip: "Opens hip rotation so you can hit depth without the pelvis tucking under ('butt wink'). The best 2 minutes you can spend before squatting." },
@@ -161,8 +162,8 @@ const days = [
       },
       {
         name: "STRENGTH — LOWER A",
-        badge: "4 exercises · 30 min",
-        note: "Straight sets, fixed rest — timed to ~30 min. Legs need the longest rests; the numbers below already include them. Last set of each lift at 1–2 reps in reserve — real effort, with a touch more caution than upper body. Legs are your biggest muscles, so holding strength here matters most. BAD DAY RULE: warm-up + squat + RDL, then go (~25 min).",
+        badge: "5 exercises · 33 min",
+        note: "Straight sets, fixed rest — timed to ~33 min. Legs need the longest rests; the numbers below already include them. Last set of each lift at 1–2 reps in reserve — real effort, with a touch more caution than upper body. Legs are your biggest muscles, so holding strength here matters most. BAD DAY RULE: warm-up + squat + RDL, then go (~25 min).",
         items: [
           {
             label: "1. Barbell Back Squat",
@@ -195,6 +196,14 @@ const days = [
             tip: "Pad just above the heels, thighs strapped down, hips fixed. Seated puts the hamstrings under a better stretch than lying. Curl to full contraction with a 1s squeeze, 3s back to the stretch. Point the toes to take the calves out.",
             coachZ: "Hamstrings are what stop legs looking flat from the side once you lean out. Squeeze every rep like you mean it.",
             avoid: "Hips lifting off the seat to finish reps, bouncing out of the stretch.",
+          },
+          {
+            label: "5. Standing Calf Raise",
+            detail: "2×12–15 · 45s rest",
+            sets: 2, restSeconds: 45,
+            tip: "Ball of the foot on the platform, knees straight but not locked, body tall and braced. Full stretch at the bottom, 2s pause at the top, rise over the big toe — not the outside edge of the foot. Strong calves and Achilles make the rope and the daily walk easier on the ankles.",
+            coachZ: "Two-second holds. If it doesn't burn by rep 10 you're bouncing, not lifting.",
+            avoid: "Don't bounce out of the bottom on the Achilles tendon.",
           },
         ],
       },
@@ -310,13 +319,13 @@ const days = [
     subtitle: "6:15am · Deadlift · Split Squat · Glutes · Intervals",
     color: "#C84BFF",
     icon: "🧩",
-    burn: "~410 kcal",
+    burn: "~420 kcal",
     cardioType: "Lift + HIIT finisher",
     sections: [
       {
         name: "WARM-UP & JOINT PREP",
         badge: "8 min",
-        note: "~53 min total today. Hinge day — the hips and spine need to be warm before the deadlift.",
+        note: "~56 min total today. Hinge day — the hips and spine need to be warm before the deadlift.",
         items: [
           { label: "Skipping Rope Primer", detail: "2 min · easy bounce", tip: "Short and easy — raise core temp without tiring the calves." },
           { label: "90/90 Hip Switches + Cat-Cow", detail: "2×8", tip: "Hips for the deadlift and split squats, spine for everything. Slow and deliberate." },
@@ -326,8 +335,8 @@ const days = [
       },
       {
         name: "STRENGTH — LOWER B",
-        badge: "4 exercises · 30 min",
-        note: "Straight sets, fixed rest — timed to ~30 min. Last set of each lift at 1–2 reps in reserve. The split squat is the highest heart-rate lift of the week — more burn per set than any machine. BAD DAY RULE: warm-up + deadlift + split squats, then go (~25 min).",
+        badge: "5 exercises · 33 min",
+        note: "Straight sets, fixed rest — timed to ~33 min. Last set of each lift at 1–2 reps in reserve. The split squat is the highest heart-rate lift of the week — more burn per set than any machine. BAD DAY RULE: warm-up + deadlift + split squats, then go (~25 min).",
         items: [
           {
             label: "1. Trap-Bar Deadlift",
@@ -360,6 +369,14 @@ const days = [
             tip: "Hips flat on the pad, curl all the way toward the glutes, 3s return. Point the toes toward your shins to keep the calves out of it.",
             coachZ: "Second hamstring session of the week. Hamstrings recover fast — train them twice and they'll take it.",
             avoid: "Don't let the hips pop up off the pad to finish reps.",
+          },
+          {
+            label: "5. Seated Calf Raise",
+            detail: "2×15–20 · 45s rest",
+            sets: 2, restSeconds: 45,
+            tip: "Pad snug above the knees, balls of the feet on the platform, sit tall. Seated hits the soleus, which Tuesday's standing version misses. Full stretch, 2s pause at the top.",
+            coachZ: "Higher reps than Tuesday on purpose — the soleus is almost entirely slow-twitch and wants the volume.",
+            avoid: "Don't bounce. Ever, on calves.",
           },
         ],
       },
@@ -417,10 +434,10 @@ const coachZPrinciples = [
 
 const weekMap = [
   { day: "MON", focus: "Upper A (~46–56 min) + daily walk", burn: 380, color: "#FF4D1C" },
-  { day: "TUE", focus: "Lower A + HIIT (~53 min) + daily walk", burn: 410, color: "#00E87A" },
+  { day: "TUE", focus: "Lower A + HIIT (~56 min) + daily walk", burn: 420, color: "#00E87A" },
   { day: "WED", focus: "Off — daily 30-min walk + 10k steps", burn: 150, color: "#444" },
   { day: "THU", focus: "Upper B (~46–56 min) + daily walk", burn: 380, color: "#00C2FF" },
-  { day: "FRI", focus: "Lower B + HIIT (~53 min) + daily walk", burn: 410, color: "#C84BFF" },
+  { day: "FRI", focus: "Lower B + HIIT (~56 min) + daily walk", burn: 420, color: "#C84BFF" },
   { day: "SAT", focus: "Off — daily 30-min walk + 10k steps", burn: 150, color: "#444" },
   { day: "SUN", focus: "Off — daily 30-min walk + 10k steps", burn: 150, color: "#444" },
 ];
