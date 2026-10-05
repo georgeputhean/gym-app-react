@@ -45,7 +45,7 @@ const CZ = "#B388FF"; // Coach Z accent
 // calf raise at 2 short sets.
 //
 // Session length (computed as sets × (work + rest) + transitions):
-//   Upper ≈ 46 min, +10 min optional extra-burn walk
+//   Upper ≈ 47 min, +10 min optional extra-burn walk
 //   Lower ≈ 56 min including the HIIT finisher
 // No supersets — straight sets, fixed rest.
 // ─────────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ const days = [
       {
         name: "WARM-UP & JOINT PREP",
         badge: "8 min",
-        note: "~46 min total today (~56 with the optional walk). Rope raises core temp fast; the drills open the shoulders and mid-back you're about to load. Don't skip it — cold shoulders under a pressing load are the #1 way people get hurt on upper days.",
+        note: "~47 min total today (~57 with the optional walk). Rope raises core temp fast; the drills open the shoulders and mid-back you're about to load. Don't skip it — cold shoulders under a pressing load are the #1 way people get hurt on upper days.",
         items: [
           { label: "Skipping Rope Primer", detail: "3 min · easy–moderate bounce", tip: "Full-body, ~12–15 kcal/min, spikes heart rate faster than a bike. Light two-foot bounce, 1–2 inches off the floor, elbows in, wrists doing the turning. Land soft — this is a primer, not the workout. 60s on / 20s off if you're new to it." },
           { label: "Band Pull-Aparts + Band Face Pulls", detail: "2×15 each", tip: "Arms straight on the pull-aparts, shoulder blades down-and-back. Face pulls: elbows high, thumbs rotate back. Rear-delt and rotator-cuff prep — the posture you'll press and row from." },
@@ -74,14 +74,14 @@ const days = [
       },
       {
         name: "STRENGTH — UPPER A",
-        badge: "5 exercises · 32 min",
-        note: "Straight sets, fixed rest — use the in-app timer; these numbers are what make the block land at ~32 min. Last set of each lift at 0–1 reps in reserve: genuinely hard, form still clean. That effort, not the calories burned lifting, is what tells your body to keep muscle in a deficit. When every set hits the top of the rep range, add 5lb next time — the PB badge shows the number to beat. Incline leads because upper chest is the first line to reappear as chest fat comes off; the pulldown is early because lat width is half the V-taper. BAD DAY RULE: short on time or energy? Warm-up + exercises 1–2, then go (~25 min). A short session keeps the habit; a skipped one starts breaking it.",
+        badge: "5 exercises · 33 min",
+        note: "Straight sets, fixed rest — use the in-app timer; these numbers are what make the block land at ~33 min. Barbell and dumbbell presses: last set at 1–2 reps in reserve — genuinely hard, form still clean, and no grinding a bar you can't rack alone at 6:15am. Machine and cable lifts (pulldown, row, laterals): take the last set to failure. That effort, not the calories burned lifting, is what tells your body to keep muscle in a deficit. When every set hits the top of the rep range, add 5lb next time — the PB badge shows the number to beat. Incline leads because upper chest is the first line to reappear as chest fat comes off; the pulldown is early because lat width is half the V-taper. BAD DAY RULE: short on time or energy? Warm-up + exercises 1–2, then go (~25 min). A short session keeps the habit; a skipped one starts breaking it.",
         items: [
           {
             label: "1. Incline Barbell Bench Press",
             detail: "3×6–10 · 2 min rest",
             sets: 3, restSeconds: 120,
-            tip: "Bench at 30°, not 45° — any higher and it becomes a shoulder press. Shoulder blades pinched down and back into the bench, feet flat and driving into the floor, elbows ~45° from the torso, bar to the upper chest. Wrists stacked straight over the elbows the whole time.",
+            tip: "Bench at 30–45° — drop it lower if you feel it mostly in the front of the shoulders. Shoulder blades pinched down and back into the bench, feet flat and driving into the floor, elbows ~45° from the torso, bar to the upper chest. Wrists stacked straight over the elbows the whole time.",
             coachZ: "Visualize the upper chest doing the work before you unrack. 3-second lowering on every rep. Between sets, 10s of hard pec flexing to keep the connection lit.",
             avoid: "No bouncing the bar off the chest, no flared elbows (shoulder-impingement risk), no grinding ugly reps once the wrists bend back or the hips leave the bench.",
           },
@@ -111,10 +111,10 @@ const days = [
           },
           {
             label: "5. Cable Lateral Raise",
-            detail: "3×12–15 · 45s rest",
-            sets: 3, restSeconds: 45,
+            detail: "3×12–15 · 60s rest",
+            sets: 3, restSeconds: 60,
             tip: "Low pulley behind you, lean 5° away, soft elbow, lead with the elbow, stop at shoulder height. Cables keep tension at the bottom where dumbbells give you nothing. 2–3s lowering.",
-            coachZ: "Laterals get hit twice this week — here and Thursday's Y-raise — because wide delts are the fastest visual return while you lean out. After the final set, 15 top-half partials.",
+            coachZ: "Laterals get hit twice this week — here and Thursday's Y-raise — because wide delts are the fastest visual return while you lean out. On the final set, when full reps fail, keep going with partials in the bottom half — arm low, delt stretched. Lengthened partials push the set past failure where the muscle is longest.",
             avoid: "Don't shrug at the top — that's the traps stealing the work. Don't swing the stack.",
           },
         ],
@@ -163,7 +163,7 @@ const days = [
       {
         name: "STRENGTH — LOWER A",
         badge: "5 exercises · 33 min",
-        note: "Straight sets, fixed rest — timed to ~33 min. Legs need the longest rests; the numbers below already include them. Last set of each lift at 1–2 reps in reserve — real effort, with a touch more caution than upper body. Legs are your biggest muscles, so holding strength here matters most. BAD DAY RULE: warm-up + squat + RDL, then go (~25 min).",
+        note: "Straight sets, fixed rest — timed to ~33 min. Legs need the longest rests; the numbers below already include them. Squat, RDL and leg press: last set at 1–2 reps in reserve — real effort, with a touch more caution than upper body. Leg curl and calf raise: last set to failure. Legs are your biggest muscles, so holding strength here matters most. BAD DAY RULE: warm-up + squat + RDL, then go (~25 min).",
         items: [
           {
             label: "1. Barbell Back Squat",
@@ -201,8 +201,8 @@ const days = [
             label: "5. Standing Calf Raise",
             detail: "2×12–15 · 45s rest",
             sets: 2, restSeconds: 45,
-            tip: "Ball of the foot on the platform, knees straight but not locked, body tall and braced. Full stretch at the bottom, 2s pause at the top, rise over the big toe — not the outside edge of the foot. Strong calves and Achilles make the rope and the daily walk easier on the ankles.",
-            coachZ: "Two-second holds. If it doesn't burn by rep 10 you're bouncing, not lifting.",
+            tip: "Ball of the foot on the platform, knees straight but not locked, body tall and braced. Sink into a full stretch at the bottom and pause 2s there, then rise over the big toe — not the outside edge of the foot. Strong calves and Achilles make the rope and the daily walk easier on the ankles.",
+            coachZ: "Two-second holds in the stretch. If it doesn't burn by rep 10 you're bouncing, not lifting.",
             avoid: "Don't bounce out of the bottom on the Achilles tendon.",
           },
         ],
@@ -238,7 +238,7 @@ const days = [
       {
         name: "WARM-UP & JOINT PREP",
         badge: "8 min",
-        note: "~46 min total today (~56 with the optional walk). Hanging and pressing overhead need healthy shoulder rotation and a stable mid-back — prep both before loading them.",
+        note: "~47 min total today (~57 with the optional walk). Hanging and pressing overhead need healthy shoulder rotation and a stable mid-back — prep both before loading them.",
         items: [
           { label: "Skipping Rope Primer", detail: "3 min · easy–moderate bounce", tip: "Fast full-body temp-raise. Elbows in, wrists turning the rope, shoulders relaxed — don't grip the handles white-knuckle." },
           { label: "Band Shoulder Dislocates + Wall Slides", detail: "2×10 each", tip: "Wide grip on the band, slowly front-to-back — screens and opens shoulder rotation before anything goes overhead. Wall slides groove overhead alignment." },
@@ -247,8 +247,8 @@ const days = [
       },
       {
         name: "STRENGTH — UPPER B",
-        badge: "5 exercises · 32 min",
-        note: "Straight sets, fixed rest — timed to ~32 min. Last set of each lift at 0–1 reps in reserve. Coach Z: this is the width day — lats and side delts get the priority slots, every set ends with a squeeze, every rest includes a flex. BAD DAY RULE: warm-up + pull-ups + shoulder press, then go (~25 min).",
+        badge: "5 exercises · 33 min",
+        note: "Straight sets, fixed rest — timed to ~33 min. Pull-ups and the dumbbell press: last set at 1–2 reps in reserve. Machine and cable lifts (row, Y-raise, straight-arm pulldown): last set to failure. Coach Z: this is the width day — lats and side delts get the priority slots, every set ends with a squeeze, every rest includes a flex. BAD DAY RULE: warm-up + pull-ups + shoulder press, then go (~25 min).",
         items: [
           {
             label: "1. Pull-Up (assisted or weighted)",
@@ -276,16 +276,16 @@ const days = [
           },
           {
             label: "4. Cross-Body Cable Y-Raise",
-            detail: "3×12–15 per arm · 45s rest · low pulley, light weight",
-            sets: 3, restSeconds: 45,
+            detail: "3×12–15 per arm · 60s rest · low pulley, light weight",
+            sets: 3, restSeconds: 60,
             tip: "Stand side-on to a low pulley and take the handle with the FAR hand so the cable crosses your body, then raise up and out on a Y-line to shoulder height. Stand tall, no torso sway. Starting across the body gives the side delt a stretch a dumbbell can't reach.",
             coachZ: "One of Nippard's top lateral-delt picks, because of that stretch. Go lighter than your ego wants and hold the top for a full second.",
             avoid: "Don't turn it into a front raise — the path is out to the side and slightly forward, never straight ahead.",
           },
           {
             label: "5. Straight-Arm Cable Pulldown",
-            detail: "2×12–15 · 45s rest",
-            sets: 2, restSeconds: 45,
+            detail: "2×12–15 · 60s rest",
+            sets: 2, restSeconds: 60,
             tip: "High pulley, rope or straight bar, slight hip hinge, arms locked nearly straight. Drive down to the thighs using only the lats; torso stays still, ribs down.",
             coachZ: "Pure lat isolation with zero bicep — the movement that finishes the lats after the pull-ups have tired your arms.",
             avoid: "Don't bend the elbows — the moment you do, it becomes a pushdown.",
@@ -336,7 +336,7 @@ const days = [
       {
         name: "STRENGTH — LOWER B",
         badge: "5 exercises · 33 min",
-        note: "Straight sets, fixed rest — timed to ~33 min. Last set of each lift at 1–2 reps in reserve. The split squat is the highest heart-rate lift of the week — more burn per set than any machine. BAD DAY RULE: warm-up + deadlift + split squats, then go (~25 min).",
+        note: "Straight sets, fixed rest — timed to ~33 min. Deadlift, split squat, hip thrust: last set at 1–2 reps in reserve. Leg curl and calf raise: last set to failure. The split squat is the highest heart-rate lift of the week — more burn per set than any machine. BAD DAY RULE: warm-up + deadlift + split squats, then go (~25 min).",
         items: [
           {
             label: "1. Trap-Bar Deadlift",
@@ -374,7 +374,7 @@ const days = [
             label: "5. Seated Calf Raise",
             detail: "2×15–20 · 45s rest",
             sets: 2, restSeconds: 45,
-            tip: "Pad snug above the knees, balls of the feet on the platform, sit tall. Seated hits the soleus, which Tuesday's standing version misses. Full stretch, 2s pause at the top.",
+            tip: "Pad snug above the knees, balls of the feet on the platform, sit tall. Seated hits the soleus, which Tuesday's standing version misses. Full stretch with a 2s pause at the bottom, then up to a full squeeze.",
             coachZ: "Higher reps than Tuesday on purpose — the soleus is almost entirely slow-twitch and wants the volume.",
             avoid: "Don't bounce. Ever, on calves.",
           },
@@ -411,7 +411,8 @@ const dailyLayer = [
   { icon: "🗓️", title: "Same Slots, Every Week", body: "Habits form fastest when the behaviour happens in the same context each time (Lally 2010) — so keep the 4 gym days in the 6:15am slot, like your walk. Missing a single session doesn't break a habit; missing two in a row starts to. If Monday gets wiped out, train it Wednesday and keep going — don't cram two days into one." },
   { icon: "⏱️", title: "Bad Day Rule", body: "Short on time or energy? Do the warm-up and the first two lifts of the day, then go home — about 25 minutes. Those two compounds carry most of the muscle-retention signal. A short session keeps the streak and the habit alive; a skipped one is how most plans quietly die." },
   { icon: "🔬", title: "Why 4 Days Is Enough", body: "Lifting's job in a cut is holding muscle, not building it. The 'No Time to Lift?' review (Iversen 2021) puts the time-efficient floor at ~4 hard sets per muscle per week on mostly multi-joint lifts; this plan gives every major muscle 5–12. Bickel 2011 found trained lifters kept strength and size on as little as 1/3 of the volume that built it. The fat loss comes from the deficit and your walking — the gym protects the muscle underneath." },
-  { icon: "📈", title: "Effort + Double Progression", body: "Last set of every lift close to failure — 0–1 RIR upper, 1–2 lower. When every set hits the top of the rep range with clean form, add 5lb (upper) or 10lb (lower). The PB badge on each lift shows the number to beat. Holding or adding load week-to-week is your #1 sign muscle is being kept — log every session." },
+  { icon: "📈", title: "Effort + Double Progression", body: "Barbell and dumbbell lifts, plus the leg press and hip thrust: last set at 1–2 reps in reserve. Machine and cable isolations (pulldowns, rows, laterals, leg curls, calves): last set to failure. Stopping 1–3 reps short builds about as much muscle as going to failure (Robinson 2024), so save true failure for the lifts where failing is safe. When every set hits the top of the rep range with clean form, add 5lb (upper) or 10lb (lower). The PB badge on each lift shows the number to beat. Holding or adding load week-to-week is your #1 sign muscle is being kept — log every session." },
+  { icon: "🔋", title: "Deload Every 6–8 Weeks", body: "Every 6–8 weeks — or sooner if your lifts drop two sessions in a row — take one easy week. Same exercises, same days, about half the sets, every set at 3–4 reps in reserve. Keep the food target, the daily walk and the steps exactly the same. In a long cut, fatigue builds faster than you notice, and a planned easy week protects your strength and keeps the plan sustainable through December." },
   { icon: "🎯", title: "Load the Core, Don't Just Vacuum It", body: "Weighted, progressible ab work (cable crunch, weighted hanging leg raise) builds visible muscle and a stronger brace. The stomach vacuum trains the deep 'corset' muscle for spinal support — worth 30s a day, but it doesn't build visible muscle or burn fat." },
   { icon: "🚫", title: "No Spot Reduction", body: "Chest, love handles, tummy and glutes come off in the order your genetics decide, driven by the total deficit. Nothing you train changes that order. Hold the deficit, keep lifting, and those areas go last because they went on first. If a firm, tender lump stays right under a nipple once you are lean, that is gynecomastia rather than fat — a doctor question, not a cardio one." },
   { icon: "🔁", title: "The Stall Protocol", body: "If the 7-day average has not moved in 10+ days: subtract 100 kcal OR add 2,000 steps — one, not both. If you are losing more than 1 kg/week for two weeks running, add 100 kcal back; that rate is costing you muscle." },
@@ -428,15 +429,16 @@ const coachZPrinciples = [
   { num: "05", title: "3-Second Eccentrics on Compounds", body: "The lowering phase is where muscle is built and kept. Slow negatives get more out of every set — exactly the trade you want when sets are limited." },
   { num: "06", title: "Straight Sets, Timed Rest", body: "No supersets. Every rest period is a fixed number that makes the session fit its time. Use the timer, don't stretch it." },
   { num: "07", title: "Every Upper Day Is a Width Day", body: "Pulldowns and cable laterals Monday, pull-ups, Y-raises and straight-arm pulldowns Thursday. Lats and side delts are the V — width you build while the fat comes off, so the taper is already there when you get lean." },
-  { num: "08", title: "Guard the Waist", body: "No weighted side bends, no loaded oblique twists — they build exactly the thickness you are trying to lose. Weighted crunches, leg raises and the vacuum only." },
-  { num: "09", title: "Film It Monthly", body: "All-day posture — shoulders back, chest up, ribs over hips. Photograph the same three poses in the same light on the 1st of every month. Between 80kg and 70kg the camera will show you things the scale never will." },
+  { num: "08", title: "Train the Stretch", body: "Muscles grow most from load where they're longest: deep RDLs, seated leg curls, full-stretch laterals, calf pauses at the bottom. When full reps fail on a machine or cable lift, partials in the stretched half extend the set. Lengthened partials beat shortened ones and roughly match full reps, so they add to full reps, not replace them." },
+  { num: "09", title: "Guard the Waist", body: "No weighted side bends, no loaded oblique twists — they build exactly the thickness you are trying to lose. Weighted crunches, leg raises and the vacuum only." },
+  { num: "10", title: "Film It Monthly", body: "All-day posture — shoulders back, chest up, ribs over hips. Photograph the same three poses in the same light on the 1st of every month. Between 80kg and 70kg the camera will show you things the scale never will." },
 ];
 
 const weekMap = [
-  { day: "MON", focus: "Upper A (~46–56 min) + daily walk", burn: 380, color: "#FF4D1C" },
+  { day: "MON", focus: "Upper A (~47–57 min) + daily walk", burn: 380, color: "#FF4D1C" },
   { day: "TUE", focus: "Lower A + HIIT (~56 min) + daily walk", burn: 420, color: "#00E87A" },
   { day: "WED", focus: "Off — daily 30-min walk + 10k steps", burn: 150, color: "#444" },
-  { day: "THU", focus: "Upper B (~46–56 min) + daily walk", burn: 380, color: "#00C2FF" },
+  { day: "THU", focus: "Upper B (~47–57 min) + daily walk", burn: 380, color: "#00C2FF" },
   { day: "FRI", focus: "Lower B + HIIT (~56 min) + daily walk", burn: 420, color: "#C84BFF" },
   { day: "SAT", focus: "Off — daily 30-min walk + 10k steps", burn: 150, color: "#444" },
   { day: "SUN", focus: "Off — daily 30-min walk + 10k steps", burn: 150, color: "#444" },
